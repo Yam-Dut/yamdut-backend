@@ -18,6 +18,11 @@ public class MapView extends Application {
             engine.loadContent("<h1>map.html not found</h1>");
         } else {
             engine.load(url.toExternalForm());
+            engine.getLoadWorker().stateProperty().addListener((obs, o, n) -> {
+                if (n == javafx.concurrent.Worker.State.SUCCEEDED) {
+                    engine.executeScript("window.MAPBOX_TOKEN = '" + System.getenv("MAPBOX_TOKEN") + "'");
+                }
+            });
         }
 
         stage.setScene(new Scene(webView, 1200, 800));
