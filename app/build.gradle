@@ -1,0 +1,19 @@
+dependencies {
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    
+    // JXMapViewer2 for map rendering (Swing-based)
+    implementation 'org.jxmapviewer:jxmapviewer2:2.0'    
+    // Swing for desktop GUI
+    implementation 'org.openjfx:javafx-swing:20'
+    
+    // Database
+    runtimeOnly 'com.h2database:h2'
+    
+    // Utilities
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
