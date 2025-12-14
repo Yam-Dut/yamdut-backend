@@ -15,7 +15,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MapService {
   private static final String OSRM_BASE =
     "http://localhost:5000/route/v1/driving/";
