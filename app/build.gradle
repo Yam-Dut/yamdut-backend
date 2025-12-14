@@ -1,19 +1,35 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    // Spring Boot Starters
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // MySQL Connector
+    implementation 'com.mysql:mysql-connector-j:8.2.0'
     
-    // JXMapViewer2 for map rendering (Swing-based)
-    implementation 'org.jxmapviewer:jxmapviewer2:2.0'    
-    // Swing for desktop GUI
-    implementation 'org.openjfx:javafx-swing:20'
-    
-    // Database
-    runtimeOnly 'com.h2database:h2'
-    
-    // Utilities
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    
-    // Testing
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // JUnit 5 (Jupiter)
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.1'
+}
+
+application {
+    mainClass = 'org.example.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
