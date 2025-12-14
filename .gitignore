@@ -7,3 +7,5 @@ build
 D:\java\YamDut\yamdut-backend\app\src\main\java\org\example\database\mySQL.
 D:\java\YamDut\yamdut-backend\build
 D:\java\YamDut\yamdut-backend\gradle.properties
+
+*.class
