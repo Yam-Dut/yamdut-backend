@@ -62,6 +62,7 @@ public class MapService {
       throw new RuntimeException("OSRM HTTP error: " + conn.getResponseCode() + " " + conn.getResponseMessage());
     }
 
+    
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     StringBuilder sb = new StringBuilder();
     String line;
