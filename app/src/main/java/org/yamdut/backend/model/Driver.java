@@ -1,4 +1,4 @@
-package org.yamdut.backend.dao.model;
+package org.yamdut.backend.model;
 
 public class Driver {
     private int id;
@@ -66,3 +66,5 @@ public class Driver {
         this.status = status;
     }
 }
+
+
