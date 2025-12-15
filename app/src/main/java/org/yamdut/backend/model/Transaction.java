@@ -1,4 +1,4 @@
-package org.yamdut.backend.dao.model;
+package org.yamdut.backend.model;
 
 import java.sql.Timestamp;
 
@@ -67,3 +67,5 @@ public class Transaction {
         this.status = status;
     }
 }
+
+
