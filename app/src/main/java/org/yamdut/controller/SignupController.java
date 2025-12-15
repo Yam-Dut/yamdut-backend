@@ -40,16 +40,16 @@ public class SignupController {
                         view.showSuccess("Account created successfully");
                         view.clearFields();
                         screenManager.show("LOGIN");
+                    } else {
+                        view.showError(
+                            errorMessage != null
+                                ? errorMessage
+                                : "Signup Failed"
+                        );
                     }
-                } else {
-                    view.showError(
-                        errorMessage != null
-                        ? errorMessage
-                        : "Signup Failed"
-                    );
+                } catch (Exception e) {
+                    view.showError("Unexpected error occured");
                 }
-            } catch (Exception e) {
-                view.showError("Unexpected error occured");
             }
         };
         worker.execute();
