@@ -28,7 +28,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'org.example.view.Main'
+    mainClass = 'org.yamdut.App'
 }
 
 test {
