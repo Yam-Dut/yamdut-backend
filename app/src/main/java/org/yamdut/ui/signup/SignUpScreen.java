@@ -1,9 +1,28 @@
 package org.yamdut.ui.signup;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
+
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
@@ -11,6 +30,7 @@ import org.yamdut.controller.SignupController;
 import org.yamdut.ui.components.InputField;
 import org.yamdut.ui.components.PrimaryButton;
 import org.yamdut.utils.Theme;
+import org.yamdut.utils.Validators;
 
 public class SignUpScreen extends JPanel {
     private SignupController controller;
@@ -23,7 +43,9 @@ public class SignUpScreen extends JPanel {
     private JPasswordField confirmPasswordField;
     private JButton signupButton;
     private JButton loginButton;
-    private JComboBox<String> userTypeCombo;
+    private JRadioButton passengerBtn;
+    private JRadioButton driverBtn;
+    private ButtonGroup roleGroup;
     private JCheckBox termsCheckbox;
     private JLabel passwordStrengthLabel;
     
@@ -85,27 +107,45 @@ public class SignUpScreen extends JPanel {
         phoneField.setPreferredSize(new Dimension(350, 40));
         formPanel.add(phoneInput, gbc);
         
-        // User Type Selection
-        JPanel userTypePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        userTypePanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        // User Type Selection - Radio Buttons
+        JPanel rolePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        rolePanel.setBackground(Theme.BACKGROUND_PRIMARY);
         
-        JLabel userTypeLabel = new JLabel("I want to:");
-        userTypeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        userTypeLabel.setPreferredSize(new Dimension(100, 35));
+        JLabel roleLabel = new JLabel("I want to:");
+        roleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        roleLabel.setPreferredSize(new Dimension(100, 35));
+        roleLabel.setVerticalAlignment(SwingConstants.CENTER);
         
-        userTypeCombo = new JComboBox<>(new String[]{
-            "Ride as Passenger", 
-            "Drive as Partner"
-        });
-        userTypeCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        userTypeCombo.setBackground(Color.WHITE);
-        userTypeCombo.setPreferredSize(new Dimension(250, 35));
-        userTypeCombo.setFocusable(false);
+        // Create radio buttons
+        passengerBtn = new JRadioButton("Ride as Passenger");
+        driverBtn = new JRadioButton("Drive as Partner");
         
-        userTypePanel.add(userTypeLabel);
-        userTypePanel.add(Box.createHorizontalStrut(10));
-        userTypePanel.add(userTypeCombo);
-        formPanel.add(userTypePanel, gbc);
+        // Style radio buttons
+        passengerBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        driverBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passengerBtn.setBackground(Theme.BACKGROUND_PRIMARY);
+        driverBtn.setBackground(Theme.BACKGROUND_PRIMARY);
+        passengerBtn.setForeground(Theme.TEXT_PRIMARY);
+        driverBtn.setForeground(Theme.TEXT_PRIMARY);
+        passengerBtn.setFocusPainted(false);
+        driverBtn.setFocusPainted(false);
+        
+        // Create button group
+        roleGroup = new ButtonGroup();
+        roleGroup.add(passengerBtn);
+        roleGroup.add(driverBtn);
+        passengerBtn.setSelected(true); // default selection
+        
+        // Add radio buttons to a panel with proper spacing
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
+        radioPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        radioPanel.add(passengerBtn);
+        radioPanel.add(driverBtn);
+        
+        rolePanel.add(roleLabel);
+        rolePanel.add(Box.createHorizontalStrut(10));
+        rolePanel.add(radioPanel);
+        formPanel.add(rolePanel, gbc);
         
         // Password Field
         InputField passwordInput = new InputField("Password", true);
@@ -219,7 +259,9 @@ public class SignUpScreen extends JPanel {
         String phone = phoneField.getText().trim();
         String password = new String(passwordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());
-        boolean isDriver = userTypeCombo.getSelectedIndex() == 1; // "Drive as Partner"
+        
+        // Determine role from radio buttons
+        boolean isDriver = driverBtn.isSelected(); // true if driver is selected
         boolean termsAccepted = termsCheckbox.isSelected();
         
         // Validate form
@@ -342,7 +384,7 @@ public class SignUpScreen extends JPanel {
         passwordField.setText("");
         confirmPasswordField.setText("");
         termsCheckbox.setSelected(false);
-        userTypeCombo.setSelectedIndex(0);
+        passengerBtn.setSelected(true); // Reset to default
         passwordStrengthLabel.setText("");
         nameField.requestFocus();
     }
