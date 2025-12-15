@@ -2,7 +2,7 @@ package org.yamdut.backend.dao;
 
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Ride;
+import org.yamdut.backend.model.Ride;
 
 public interface RideDAO {
     boolean createRide(Ride ride);

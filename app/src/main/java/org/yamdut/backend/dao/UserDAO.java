@@ -2,7 +2,7 @@ package org.yamdut.backend.dao;
 
 import java.util.List;
 
-import org.yamdut.backend.dao.model.User;
+import org.yamdut.backend.model.User;
 
 public interface UserDAO {
     boolean createUser(User user);

@@ -2,7 +2,7 @@ package org.yamdut.backend.dao;
 
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Driver;
+import org.yamdut.backend.model.Driver;
 
 public interface DriverDAO {
     boolean createDriver(Driver driver);

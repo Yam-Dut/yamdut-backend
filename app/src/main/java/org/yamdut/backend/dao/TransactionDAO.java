@@ -2,7 +2,7 @@ package org.yamdut.backend.dao;
 
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Transaction;
+import org.yamdut.backend.model.Transaction;
 
 public interface TransactionDAO {
     boolean createTransaction(Transaction transaction);
