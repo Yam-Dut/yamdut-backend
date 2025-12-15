@@ -4,6 +4,13 @@
 # Ignore Gradle build output directory
 build/
 
+
+D:\java\YamDut\yamdut-backend\app\src\main\java\org\example\database\mySQL.
+D:\java\YamDut\yamdut-backend\build
+D:\java\YamDut\yamdut-backend\gradle.properties
+
+*.class
+
 # App module
 app/build/
 app/gradle.properties
@@ -12,3 +19,4 @@ app/gradle.properties
 app/src/main/resources/config/application.properties
 app/src/main/resources/web/token.js
 .env
+

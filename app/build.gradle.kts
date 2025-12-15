@@ -23,6 +23,12 @@ dependencies {
 
     // This dependency is used by the application.
     implementation(libs.guava)
+
+    // JavaFX for embedded 3D map viewer (Linux classifier for your environment)
+    val javaFxVersion = "21.0.2"
+    implementation("org.openjfx:javafx-controls:$javaFxVersion:linux")
+    implementation("org.openjfx:javafx-graphics:$javaFxVersion:linux")
+    implementation("org.openjfx:javafx-web:$javaFxVersion:linux")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -34,7 +40,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.YamDutApplication"
+    mainClass = "org.yamdut.App"
 }
 
 tasks.named<Test>("test") {
