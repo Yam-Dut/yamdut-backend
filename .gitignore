@@ -20,3 +20,7 @@ app/src/main/resources/config/application.properties
 app/src/main/resources/web/token.js
 .env
 
+/Get
+/Process
+/Run 
+/Task
