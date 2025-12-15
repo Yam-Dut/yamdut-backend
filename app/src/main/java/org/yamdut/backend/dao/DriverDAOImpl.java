@@ -4,9 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Driver;
 import org.yamdut.backend.database.DatabaseConfig;
 import org.yamdut.backend.database.MySqlConfig;
+import org.yamdut.backend.model.Driver;
 
 public class DriverDAOImpl implements DriverDAO {
     private DatabaseConfig db = new MySqlConfig();

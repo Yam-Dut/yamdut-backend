@@ -4,9 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Ride;
 import org.yamdut.backend.database.DatabaseConfig;
 import org.yamdut.backend.database.MySqlConfig;
+import org.yamdut.backend.model.Ride;
 
 public class RideDAOImpl implements RideDAO {
     private DatabaseConfig db = new MySqlConfig();

@@ -4,9 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.yamdut.backend.dao.model.Transaction;
 import org.yamdut.backend.database.DatabaseConfig;
 import org.yamdut.backend.database.MySqlConfig;
+import org.yamdut.backend.model.Transaction;
 
 public class TransactionDAOImpl implements TransactionDAO {
     private DatabaseConfig db = new MySqlConfig();
