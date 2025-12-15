@@ -4,7 +4,6 @@ import org.yamdut.utils.*;
 import org.yamdut.controller.*;
 import org.yamdut.ui.components.InputField;
 import org.yamdut.ui.components.PrimaryButton;
-import org.yamdut.utils.UIUtils;
 
 import javax.swing.border.*;
 import javax.swing.*;
