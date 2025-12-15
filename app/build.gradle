@@ -22,7 +22,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'org.example.Main'
+    mainClass = 'org.yamdut.App'
 }
 
 test {
