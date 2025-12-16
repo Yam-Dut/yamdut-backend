@@ -1,9 +1,11 @@
 package org.yamdut.backend.config;
 
 import java.util.Properties;
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class EmailConfig {
   private static final Properties props = new Properties();
+  private static final Dotenv dotenv = Dotenv.load();
 
   static {
     //Gmail smtp configuration
@@ -22,6 +24,18 @@ public class EmailConfig {
   }
 
   public static String getSenderEmail() {
-    return System.
+    String email = dotenv.get("EMAIL_USERNAME");
+    if (email == null || email.isBlank()) {
+      throw new IllegalStateException("EMAIL_USERNAME not set in .env file");
+    }
+    return email;
+  }
+
+  public static String getSenderPassword() {
+    String password = dotenv.get("EMAIL_PASSWORD");
+    if (password == null || password.isBlank()) {
+      throw new IllegalStateException("EMAIL_PASSWORD not set in .env file");
+    }
+    return password;
   }
 }
