@@ -11,16 +11,18 @@ public class User {
     private String passwordHash;
     private String role;
     private Timestamp createdAt;
+    private boolean verified;
 
     public User() {}
 
-    public User(String fullName, String email, String phone, String username, String passwordHash, String role) {
+    public User(String fullName, String email, String phone, String username, String passwordHash, String role, boolean verified) {
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
+        this.verified = verified;
     }
 
     public int getId() {
@@ -85,6 +87,12 @@ public class User {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+    public boolean getVerified() {
+        return verified;
     }
 }
 
