@@ -33,7 +33,7 @@ public class UserService {
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
         String role = isDriver ? "DRIVER" : "PASSENGER";
 
-        User user = new User(fullName, email, phone, email, passwordHash, role);
+        User user = new User(fullName, email, phone, email, passwordHash, role, verified);
         return userDAO.createUser(user);
     }
 }
