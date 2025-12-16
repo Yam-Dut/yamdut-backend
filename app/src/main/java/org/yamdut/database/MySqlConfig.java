@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.*;
 
+/*
+@author preeti
+ */
 public class MySqlConfig {
    
     // for linux/mariadb (amrxtgh69)
@@ -20,7 +23,7 @@ public class MySqlConfig {
         try {
             // for linux
            
-            Class.forName("org.mariadb.jdbc.Driver");
+            //Class.forName("org.mariadb.jdbc.Driver");
            
             /*  for windows uncomment the line below */
            
