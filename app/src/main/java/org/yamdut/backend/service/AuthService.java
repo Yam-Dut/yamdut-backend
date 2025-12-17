@@ -7,7 +7,8 @@ import org.yamdut.backend.dao.UserDAOImpl;
 import org.yamdut.backend.model.User;
 import org.yamdut.backend.utils.PasswordHasher;
 import org.yamdut.backend.service.*;
-
+import org.yamdut.backend.model.*;
+import org.yamdut.backend.service.UserService;
 /**
  * Authentication service responsible for validating credentials and
  * returning the authenticated user with their role (DRIVER/PASSENGER/ADMIN).
@@ -31,12 +32,13 @@ public class AuthService {
     }
 
 
-    public void signup(String email, String rawPassword, User.Role role) {
+    public void signup(String email, String rawPassword, Role role) {
         if (userService.exists(email)) {
             throw new RuntimeException("User already exists");
         }
 
         userService.createUnverifiedUser();
+        }
 
         String otpcode = otpService.generateOtp(email);
         emailService.sendOtpEmail(email, otpcode);
