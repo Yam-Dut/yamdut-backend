@@ -5,8 +5,7 @@ import javax.management.RuntimeErrorException;
 import org.yamdut.backend.dao.UserDAO;
 import org.yamdut.backend.dao.UserDAOImpl;
 import org.yamdut.backend.model.User;
-import org.yamdut.backend.utils.PasswordHasher;
-import org.yamdut.backend.service.*;
+import org.yamdut.backend.utilities.PasswordHasher;
 import org.yamdut.backend.model.*;
 import org.yamdut.backend.service.UserService;
 /**
@@ -36,9 +35,9 @@ public class AuthService {
         if (userService.exists(email)) {
             throw new RuntimeException("User already exists");
         }
+        String passwordHash = PasswordHasher.hashPassword(rawPassword);
 
-        userService.createUnverifiedUser();
-        }
+        userService.createUnverifiedUser(email, passwordHash, role);
 
         String otpcode = otpService.generateOtp(email);
         emailService.sendOtpEmail(email, otpcode);
