@@ -2,7 +2,7 @@ package org.yamdut.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.*;
+import java.sql.SQLException;
 
 /*
 @author preeti
@@ -27,7 +27,7 @@ public class MySqlConfig {
            
             /*  for windows uncomment the line below */
            
-            //Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("MySQL driver not found", e);
