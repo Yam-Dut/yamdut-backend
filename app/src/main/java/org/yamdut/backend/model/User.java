@@ -9,13 +9,13 @@ public class User {
     private String phone;
     private String username;
     private String passwordHash;
-    private String role;
+    private Role role;
     private Timestamp createdAt;
     private boolean verified;
 
     public User() {}
 
-    public User(String fullName, String email, String phone, String username, String passwordHash, String role, boolean verified) {
+    public User(String fullName, String email, String phone, String username, String passwordHash, Role role, boolean verified) {
         this.fullName = fullName;
         this.email = email;
         this.phone = phone;
@@ -73,11 +73,11 @@ public class User {
         this.passwordHash = passwordHash;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
