@@ -8,6 +8,7 @@ import org.yamdut.ui.login.LoginScreen;
 import org.yamdut.backend.model.User;
 import org.yamdut.backend.service.AuthService;
 import org.yamdut.utils.UserSession;
+import org.yamdut.backend.model.Role;
 
 public class LoginController {
     private final AuthService authService;
@@ -54,23 +55,22 @@ public class LoginController {
                     UserSession.getInstance().login(user);
 
                     // Backend has decided the role for us
-                    String role = user.getRole();
+                    Role role = user.getRole();
 
                     // This is where we branch behaviour based on the role.
                     // For now we just show a message; you can later wire this
                     // to different dashboards using ScreenManager.
                     // role already computed above
-                    switch (role != null ? role.toUpperCase() : "") {
-                        case "DRIVER":
+                    switch (role) {
+                        case DRIVER:
                             screenManager.show("DRIVER_DASHBOARD");
                             break;
 
-                        case "PASSENGER":
-                        case "USER": // if you ever store USER instead of PASSENGER
+                        case PASSENGER: // if you ever store USER instead of PASSENGER
                             screenManager.show("USER_DASHBOARD");
                             break;
 
-                        case "ADMIN":
+                        case ADMIN:
                             screenManager.show("ADMIN_DASHBOARD");
                             break;
 
