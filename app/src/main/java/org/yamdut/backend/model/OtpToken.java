@@ -5,6 +5,10 @@ public class OtpToken {
     private String otp;
     private long expiresAt;
 
+    public boolean isExpired() {
+        return System.currentTimeMillis() > expiresAt;
+    }
+
     public OtpToken() {}
 
     public OtpToken(String email, String otp, long expiresAt) {
