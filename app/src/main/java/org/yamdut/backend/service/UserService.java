@@ -3,7 +3,7 @@ package org.yamdut.backend.service;
 import org.yamdut.backend.dao.UserDAO;
 import org.yamdut.backend.dao.UserDAOImpl;
 import org.yamdut.backend.model.User;
-import org.yamdut.backend.utils.PasswordHasher;
+import org.yamdut.backend.utilities.PasswordHasher;
 import org.yamdut.backend.model.Role;
 
 public class UserService {
