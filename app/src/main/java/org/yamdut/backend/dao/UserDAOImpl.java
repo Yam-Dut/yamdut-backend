@@ -7,7 +7,7 @@ import java.util.List;
 import org.yamdut.backend.database.DatabaseConfig;
 import org.yamdut.backend.database.MySqlConfig;
 import org.yamdut.backend.model.User;
-import org.yamdut.backend.utils.PasswordHasher;
+import org.yamdut.backend.utilities.PasswordHasher;
 
 public class UserDAOImpl implements UserDAO {
     private DatabaseConfig db = new MySqlConfig();
