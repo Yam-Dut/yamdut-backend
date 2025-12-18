@@ -1,77 +1,107 @@
 package org.yamdut.view.components;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+
 import javax.swing.*;
 import java.awt.*;
-import java.net.URI;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MapPanel extends JPanel {
-    private JButton openMapButton;
+
+    private WebEngine webEngine;
+    private double lat = 27.7172;
+    private double lng = 85.3240;
+    private Timer trackingTimer;
 
     public MapPanel() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(240, 242, 245));
-
-        JPanel placeholderPanel = new JPanel(new GridBagLayout());
-        placeholderPanel.setBackground(new Color(240, 242, 245));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.insets = new Insets(10, 0, 10, 0);
-
-        JLabel mapIcon = new JLabel("🗺️");
-        mapIcon.setFont(new Font("Segoe UI", Font.PLAIN, 48));
-        gbc.insets = new Insets(0, 0, 20, 0);
-        placeholderPanel.add(mapIcon, gbc);
-
-        JLabel titleLabel = new JLabel("Interactive Map");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(52, 73, 94));
-        gbc.insets = new Insets(0, 0, 10, 0);
-        placeholderPanel.add(titleLabel, gbc);
-
-        JLabel descLabel = new JLabel("Live tracking and 3D map view (coming soon)");
-        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descLabel.setForeground(new Color(127, 140, 141));
-        placeholderPanel.add(descLabel, gbc);
-
-        openMapButton = new JButton("Open Map in Browser");
-        openMapButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        openMapButton.setBackground(new Color(52, 152, 219));
-        openMapButton.setForeground(Color.WHITE);
-        openMapButton.setFocusPainted(false);
-        openMapButton.setBorderPainted(false);
-        openMapButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        openMapButton.setPreferredSize(new Dimension(220, 40));
-        gbc.insets = new Insets(30, 0, 0, 0);
-        placeholderPanel.add(openMapButton, gbc);
-
-        add(placeholderPanel, BorderLayout.CENTER);
-
-        openMapButton.addActionListener(e -> openWebPage("https://www.google.com/maps"));
+        super(new BorderLayout());
+        setPreferredSize(new Dimension(900, 600));
+        
+        // Initialize JavaFX toolkit
+        JFXPanel jfxPanel = new JFXPanel();
+        add(jfxPanel, BorderLayout.CENTER);
+        
+        // Create and configure JavaFX WebView on JavaFX thread
+        Platform.runLater(() -> {
+            WebView webView = new WebView();
+            webEngine = webView.getEngine();
+            
+            // Enable JavaScript
+            webEngine.setJavaScriptEnabled(true);
+            
+            // Load the map HTML file
+            String mapUrl = getClass().getResource("/map/map.html").toExternalForm();
+            webEngine.load(mapUrl);
+            
+            // Wait for document to load before setting token and starting tracking
+            webEngine.documentProperty().addListener((obs, oldDoc, newDoc) -> {
+                if (newDoc != null) {
+                    // Optional: Update Mapbox token from properties if needed
+                    String token = loadMapboxToken();
+                    if (token != null && !token.equals("Token not found")) {
+                        webEngine.executeScript("setMapboxToken('" + token + "');");
+                    }
+                    
+                    // Start live tracking simulation
+                    startLiveTracking();
+                }
+            });
+            
+            // Create scene and set it to the JFXPanel
+            StackPane root = new StackPane();
+            root.getChildren().add(webView);
+            Scene scene = new Scene(root);
+            jfxPanel.setScene(scene);
+        });
     }
 
-    private void openWebPage(String url) {
-        try {
-            if (Desktop.isDesktopSupported()
-                    && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Please visit: " + url,
-                        "Open in Browser",
-                        JOptionPane.INFORMATION_MESSAGE);
+    private String loadMapboxToken() {
+        try (InputStream is = getClass().getResourceAsStream("/config/application.properties")) {
+            if (is == null) {
+                return "Token not found";
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Could not open browser. Please visit: " + url,
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            Properties props = new Properties();
+            props.load(is);
+            return props.getProperty("mapbox.token", "Token not found");
+        } catch (Exception e) {
+            return "Token not found";
         }
     }
 
-    public JButton getOpenMapButton() {
-        return openMapButton;
+    private void startLiveTracking() {
+        // Simulate driver movement
+        trackingTimer = new Timer();
+        trackingTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                // Move driver position slightly
+                lat += 0.00015;
+                lng += 0.00015;
+                
+                // Update map on JavaFX thread
+                Platform.runLater(() -> {
+                    if (webEngine != null) {
+                        webEngine.executeScript(
+                            "updateDriverLocation(" + lat + ", " + lng + ");"
+                        );
+                    }
+                });
+            }
+        }, 3000, 3000); // Update every 3 seconds
+    }
+    
+    public void stopTracking() {
+        if (trackingTimer != null) {
+            trackingTimer.cancel();
+            trackingTimer = null;
+        }
     }
 }
-
-
