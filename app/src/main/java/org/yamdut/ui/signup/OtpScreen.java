@@ -23,6 +23,7 @@ import javax.swing.Timer;
 import org.yamdut.backend.model.User;
 import org.yamdut.backend.service.OtpService;
 import org.yamdut.backend.service.UserService;
+import org.yamdut.controller.OtpController;
 import org.yamdut.core.ScreenManager;
 import org.yamdut.ui.components.OtpField;
 import org.yamdut.ui.components.PrimaryButton;
@@ -30,28 +31,28 @@ import org.yamdut.utils.Theme;
 import org.yamdut.utils.UserSession;
 
 public class OtpScreen extends JPanel {
-    private final UserService userService;
     private final ScreenManager screenManager;
     private final User user;
     private final boolean isSignup;
     private final String email;
-    
-    private JLabel titleLabel;
-    private JLabel instructionLabel;
-    private JLabel resendLabel;
+    private final OtpController otpController;
+
+    private final UserService userService = new UserService();
     private OtpField otpField;
     private JButton verifyButton;
     private JButton resendButton;
+    private JLabel resendLabel;
     private Timer resendTimer;
     private int resendCountdown = 60;
     private boolean isVerified = false;
     
+    
     public OtpScreen(User user, boolean isSignup, ScreenManager screenManager) {
-        this.userService = new UserService();
         this.user = user;
         this.isSignup = isSignup;
-        this.email = user.getEmail();
         this.screenManager = screenManager;
+        this.email = user.getEmail();
+        this.otpController = new OtpController(screenManager);
         
         initUI();
         startResendTimer();
@@ -72,7 +73,7 @@ public class OtpScreen extends JPanel {
         gbc.insets = new Insets(0, 0, 20, 0);
         
         // Title
-        titleLabel = new JLabel(isSignup ? "Verify Your Account" : "Verify Your Login");
+        JLabel titleLabel = new JLabel(isSignup ? "Verify Your Account" : "Verify Your Login");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
         titleLabel.setForeground(Theme.TEXT_PRIMARY);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -80,7 +81,7 @@ public class OtpScreen extends JPanel {
         contentPanel.add(titleLabel, gbc);
         
         // Instruction
-        instructionLabel = new JLabel("<html><center>We've sent a 6-digit verification code to:<br><b>" + 
+        JLabel instructionLabel = new JLabel("<html><center>We've sent a 6-digit verification code to:<br><b>" + 
                                      email + "</b></center></html>");
         instructionLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         instructionLabel.setForeground(Theme.TEXT_SECONDARY);
@@ -117,7 +118,7 @@ public class OtpScreen extends JPanel {
         resendButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         resendButton.setEnabled(false);
         
-        resendLabel = new JLabel("(60s)");
+        JLabel resendLabel = new JLabel("(60s)");
         resendLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         resendLabel.setForeground(Theme.TEXT_SECONDARY);
         
@@ -157,12 +158,17 @@ public class OtpScreen extends JPanel {
         
         // Auto-verify when 6 digits are entered
         otpField.addPropertyChangeListener(e -> {
-            String otp = otpField.getOtp();
-            if (otp.length() == 6 && !isVerified) {
+            if (!isVerified && otpField.getOtp().length() == 6) {
                 verifyOtp();
             }
         });
     }
+
+    private void setVerifying(boolean verifying) {
+        verifyButton.setText(verifying ? "Verifying..." : "Verify");
+        verifyButton.setEnabled(!verifying);
+        otpField.setEnabled(!verifying);
+    } 
     
     private void verifyOtp() {
         String otp = otpField.getOtp();
@@ -175,38 +181,14 @@ public class OtpScreen extends JPanel {
             otpField.setFocus();
             return;
         }
-        
-        // Show loading
-        verifyButton.setText("Verifying...");
-        verifyButton.setEnabled(false);
-        otpField.setEnabled(false);
+        setVerifying(true);
         
         // Verify OTP
-        OtpService otpService = new OtpService();
-        boolean isValid = otpService.verifyOtp(email, otp);
+        boolean valid = otpController.verify(user, otp, isSignup);
         
-        if (isValid) {
-            isVerified = true;
-            
-            if (isSignup) {
-                // Activate user account
-                userService.activateUser(email);
-            }
-            
-            // Store user in session
-            UserSession.getInstance().login(user);
-            
-            // Show success message
-            JOptionPane.showMessageDialog(this,
-                "Verification successful!",
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE);
-            
-            screenManager.showDashBoardForRole(user.getRole());
-            
-            
+        if (valid) {
+            JOptionPane.showMessageDialog(this, "Verification successful!", "Success", JOptionPane.INFORMATION_MESSAGE);            
         } else {
-            // Show error
             JOptionPane.showMessageDialog(this, 
                 "Invalid or expired OTP. Please try again.", 
                 "Verification Failed", 
@@ -222,8 +204,7 @@ public class OtpScreen extends JPanel {
     }
     
     private void resendOtp() {
-        OtpService otpService = new OtpService();
-        boolean sent = otpService.resendOtp(email);
+        boolean sent = otpController.resendOtp(user);
         
         if (sent) {
             JOptionPane.showMessageDialog(this,
@@ -246,7 +227,6 @@ public class OtpScreen extends JPanel {
                 JOptionPane.ERROR_MESSAGE);
         }
     }
-    
     private void startResendTimer() {
         resendTimer = new Timer(1000, new ActionListener() {
             @Override
