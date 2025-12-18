@@ -35,7 +35,7 @@ public class UserService {
             role, 
             false
         );
-        userDAO.save(user);i
+        userDAO.save(user);
     }
 
     public void activateUser(String email) {
@@ -59,8 +59,9 @@ public class UserService {
         }
 
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
-        String role = isDriver ? "DRIVER" : "PASSENGER";
+        Role role = isDriver ? Role.DRIVER : Role.PASSENGER;
 
+        boolean verified = false;
         User user = new User(fullName, email, phone, email, passwordHash, role, verified);
         return userDAO.createUser(user);
     }
@@ -81,6 +82,6 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        return UserDAO.getUserByUsername(email);
+        return userDAO.getUserByUsername(email);
     }
 }
