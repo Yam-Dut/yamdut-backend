@@ -2,8 +2,7 @@ package org.yamdut.core;
 
 
 import org.yamdut.backend.model.*;
-import org.yamdut.ui.signup.*;
-
+import org.yamdut.view.signup.*;
 
 import javax.swing.*;
 import java.util.HashMap;
