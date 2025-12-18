@@ -1,10 +1,7 @@
 package org.yamdut.core;
 
-import org.yamdut.ui.signup.*;
-import org.yamdut.backend.model.User;
-import org.yamdut.backend.service.EmailService;
-import org.yamdut.backend.service.OtpService;
 
+import org.yamdut.backend.model.Role;
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -31,21 +28,31 @@ public class ScreenManager {
         frame.revalidate();
         frame.repaint();
     }
-    public void showOtpScreen(User user, boolean isSignup) {
-        String email = user.getEmail();
 
-        OtpService otpService = new OtpService();
-        String otp = otpService.generateOtp(email);
+    //centralized role based navigation
+    public void showDashBoardForRole(Role role) {
+        switch (role) {
+            case PASSENGER -> show("PASSENGER_DASHBOARD");
+            case DRIVER -> show("DRIVER_DASHBOARD");
+            case ADMIN -> show("ADMIN DASHBOARD");
+            default -> throw new IllegalStateException("Unknow role: " + role);
+        }
+    }
+    // public void showOtpScreen(User user, boolean isSignup) {
+    //     String email = user.getEmail();
 
-        EmailService emailService = new EmailService();
-        emailService.sendOtpEmail(email, otp);
+    //     OtpService otpService = new OtpService();
+    //     String otp = otpService.generateOtp(email);
 
-        OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
+    //     EmailService emailService = new EmailService();
+    //     emailService.sendOtpEmail(email, otp);
 
-        String screenKey = "OTP_" + email;
-        screens.put(screenKey, otpScreen);
+    //     OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
 
-        show(screenKey);
+    //     String screenKey = "OTP_" + email;
+    //     screens.put(screenKey, otpScreen);
 
-    };
+    //     show(screenKey);
+
+    // };
 }
