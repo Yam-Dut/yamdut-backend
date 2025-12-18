@@ -23,9 +23,6 @@ public class UserService {
     }
 
     public void createUnverifiedUser(String fullname, String email, String phone, String passwordHash, Role role) {
-        String defaultFullName = email.split("@")[0];
-        String defaultPhone = "";
-
         User user = new User(
             fullname,
             email,
