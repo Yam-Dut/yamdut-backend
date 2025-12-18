@@ -43,7 +43,7 @@ public class OtpScreen extends JPanel {
     private JLabel resendLabel;
     private Timer resendTimer;
     private int resendCountdown = 60;
-    private boolean isVerified = false;
+    // private boolean isVerified = false;
     
     
     public OtpScreen(User user, boolean isSignup, ScreenManager screenManager) {
@@ -154,13 +154,6 @@ public class OtpScreen extends JPanel {
         verifyButton.addActionListener(e -> verifyOtp());
         
         resendButton.addActionListener(e -> resendOtp());
-        
-        // Auto-verify when 6 digits are entered
-        otpField.addPropertyChangeListener(e -> {
-            if (!isVerified && otpField.getOtp().length() == 6) {
-                verifyOtp();
-            }
-        });
     }
 
     private void setVerifying(boolean verifying) {
