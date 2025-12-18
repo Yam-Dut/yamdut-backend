@@ -26,7 +26,7 @@ public class AuthService {
     public AuthService() {
         this.userService = new UserService();
         this.emailService = new EmailService();
-        this.otpService = new OtpService();
+        this.otpService = OtpService.getInstance();
         this.userDAO = new UserDAOImpl();
     }
 
