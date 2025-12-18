@@ -8,7 +8,6 @@ import org.yamdut.ui.login.LoginScreen;
 import org.yamdut.backend.model.User;
 import org.yamdut.backend.service.AuthService;
 import org.yamdut.utils.UserSession;
-import org.yamdut.backend.model.Role;
 
 public class LoginController {
     private final AuthService authService;
@@ -54,30 +53,11 @@ public class LoginController {
                     // Persist logged in user in client-side session
                     UserSession.getInstance().login(user);
 
-                    // Backend has decided the role for us
-                    Role role = user.getRole();
-
+                    screenManager.showDashBoardForRole(user.getRole());
                     // This is where we branch behaviour based on the role.
                     // For now we just show a message; you can later wire this
                     // to different dashboards using ScreenManager.
                     // role already computed above
-                    switch (role) {
-                        case DRIVER:
-                            screenManager.show("DRIVER_DASHBOARD");
-                            break;
-
-                        case PASSENGER: // if you ever store USER instead of PASSENGER
-                            screenManager.show("PASSENGER_DASHBOARD");
-                            break;
-
-                        case ADMIN:
-                            screenManager.show("ADMIN_DASHBOARD");
-                            break;
-
-                        default:
-                            view.showError("Unknown role for this account");
-                            break;
-                    }
                 } catch (Exception e) {
                     view.showError("Unexpected error during login");
                 }
