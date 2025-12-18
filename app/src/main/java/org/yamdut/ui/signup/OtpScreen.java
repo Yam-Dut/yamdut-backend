@@ -21,14 +21,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.yamdut.backend.model.User;
-import org.yamdut.backend.service.OtpService;
-import org.yamdut.backend.service.UserService;
+//import org.yamdut.backend.service.UserService;
 import org.yamdut.controller.OtpController;
 import org.yamdut.core.ScreenManager;
 import org.yamdut.ui.components.OtpField;
 import org.yamdut.ui.components.PrimaryButton;
 import org.yamdut.utils.Theme;
-import org.yamdut.utils.UserSession;
 
 public class OtpScreen extends JPanel {
     private final ScreenManager screenManager;
@@ -37,7 +35,7 @@ public class OtpScreen extends JPanel {
     private final String email;
     private final OtpController otpController;
 
-    private final UserService userService = new UserService();
+    //private final UserService userService = new UserService();
     private OtpField otpField;
     private JButton verifyButton;
     private JButton resendButton;
