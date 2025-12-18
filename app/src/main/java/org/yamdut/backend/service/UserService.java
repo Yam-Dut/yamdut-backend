@@ -9,9 +9,11 @@ import org.yamdut.backend.model.Role;
 public class UserService {
 
     private final UserDAO userDAO;
+    private final User user;
 
     public UserService() {
         this.userDAO = new UserDAOImpl();
+        this.user = new User();
     }
 
     /*
@@ -67,19 +69,29 @@ public class UserService {
      helper method to register a user without full details(simpler version)
      */
 
-    public boolean registerBasicUser(String fullName, String email, String rawPassword, String phone, boolean isDriver) {
+    public User registerBasicUser(String fullName, String email, String rawPassword, String phone, boolean isDriver) {
         if (exists(email)) {
-            return false;
+            return null;
         }
 
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
         Role role = isDriver ? Role.DRIVER : Role.PASSENGER;
 
-        createUnverifiedUser(fullName, email, phone, passwordHash, role);
-        return true;
+        String username = email.split("@")[0];
+
+        User user = new User(
+            fullName,
+            email,
+            phone,
+            username,
+            passwordHash,
+            role,
+            false
+        );
+        return user;
     }
 
-    public User getUserByEmail(String email) {
+    public User findByEmail(String email) {
         return userDAO.getUserByUsername(email);
     }
 }
