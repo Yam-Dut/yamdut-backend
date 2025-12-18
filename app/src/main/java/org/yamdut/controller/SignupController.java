@@ -2,7 +2,10 @@ package org.yamdut.controller;
 
 import org.yamdut.core.ScreenManager;
 import org.yamdut.ui.signup.SignUpScreen;
+import org.yamdut.backend.service.EmailService;
+import org.yamdut.backend.service.OtpService;
 import org.yamdut.backend.service.UserService;
+import org.yamdut.backend.model.*;
 
 import javax.swing.*;
 
@@ -17,15 +20,26 @@ public class SignupController {
         this.userService = new UserService();
     }
 
-    public void signup(String name, String email, String password, String phone, boolean isDriver) {
+    public void signup(String fullName, String email, String password, String phone, boolean isDriver) {
         SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean,Void>() {
             private String errorMessage;
             @Override
             protected Boolean doInBackground() {
                 try {
-                    return userService.registerUser(
-                        name, email, password, phone, isDriver
-                    ); 
+                    boolean created = userService.registerBasicUser(fullName, email, password, phone, isDriver);
+                    if (!created) {
+                        errorMessage = "Account with this email already exists";
+                        return false;
+                    }
+
+                    OtpService otpService = new OtpService();
+                    String otp = otpService.generateOtp(email);
+
+                    EmailService emailService = new EmailService();
+                    emailService.sendOtpEmail(email, otp);
+
+                    return true;
+
                 } catch (Exception e) {
                     errorMessage = e.getMessage();
                     return false;
@@ -37,9 +51,12 @@ public class SignupController {
                 view.setLoading(false);
                 try {
                     if (get()) {
-                        view.showSuccess("Account created successfully");
+                        view.showSuccess("Account created Successfully, Please verify Otp sent to your email.");
                         view.clearFields();
-                        screenManager.show("LOGIN");
+
+                        User newUser = userService.getUserByEmail(email);
+
+                        screenManager.showOtpScreen(newUser, true);
                     } else {
                         view.showError(
                             errorMessage != null
@@ -52,6 +69,7 @@ public class SignupController {
                 }
             }
         };
+        view.setLoading(true);
         worker.execute();
     }
     public void navigateToLogin() {
