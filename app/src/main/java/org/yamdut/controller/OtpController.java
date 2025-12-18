@@ -15,7 +15,7 @@ public class OtpController {
     public OtpController(ScreenManager screenManager) {
         this.userService = new UserService();
         this.screenManager = screenManager;
-        this.otpService = new OtpService();
+        this.otpService = OtpService.getInstance();
     }
 
 
