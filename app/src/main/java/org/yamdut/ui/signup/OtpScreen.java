@@ -202,12 +202,8 @@ public class OtpScreen extends JPanel {
                 "Success",
                 JOptionPane.INFORMATION_MESSAGE);
             
-            // Navigate to appropriate dashboard
-            switch (user.getRole()) {
-                case DRIVER -> screenManager.show("DRIVER_DASHBOARD");
-                case PASSENGER -> screenManager.show("PASSENGER_DASHBOARD");
-                case ADMIN -> screenManager.show("ADMIN_DASHBOARD");
-            }
+            screenManager.showDashBoardForRole(user.getRole());
+            
             
         } else {
             // Show error
