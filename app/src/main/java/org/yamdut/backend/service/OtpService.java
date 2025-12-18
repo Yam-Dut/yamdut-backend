@@ -20,7 +20,7 @@ public class OtpService {
         return otp;
     }
 
-    public boolean verifyOtp(String email, String enteredOtp) {
+    public boolean verify(String email, String enteredOtp) {
         OtpToken token = otpStore.get(email);
 
         if (token == null) {
