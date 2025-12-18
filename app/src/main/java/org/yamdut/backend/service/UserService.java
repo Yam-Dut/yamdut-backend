@@ -9,11 +9,11 @@ import org.yamdut.backend.model.Role;
 public class UserService {
 
     private final UserDAO userDAO;
-    private final User user;
+    //private final User user;
 
     public UserService() {
         this.userDAO = new UserDAOImpl();
-        this.user = new User();
+      //  this.user = new User();
     }
 
     /*
