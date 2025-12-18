@@ -10,7 +10,7 @@ D:\java\YamDut\yamdut-backend\build
 D:\java\YamDut\yamdut-backend\gradle.properties
 
 *.class
-
+.idea
 # App module
 app/build/
 app/gradle.properties
