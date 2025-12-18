@@ -40,7 +40,7 @@ public class SignupController {
                         return null;
                     }
                     
-                    OtpService otpService = new OtpService();
+                    OtpService otpService = OtpService.getInstance();
                     String otp = otpService.generateOtp(email);
 
                     EmailService emailService = new EmailService();
