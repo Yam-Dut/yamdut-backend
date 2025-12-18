@@ -5,13 +5,15 @@ import javax.swing.*;
 import org.yamdut.core.ScreenManager;
 import org.yamdut.utils.UserSession;
 import org.yamdut.view.dashboards.AdminDashboard;
-import org.yamdut.view.dashboards.DriverDashboard;
+import org.yamdut.view.dashboards.DriverDashboardView;
 import org.yamdut.view.auth.LoginScreen;
 import org.yamdut.view.components.MapPanel;
 import org.yamdut.view.dashboards.PassengerDashboard;
 import org.yamdut.view.auth.SignUpScreen;
 import org.yamdut.controller.LoginController;
 import org.yamdut.controller.SignupController;
+import org.yamdut.controller.DriverDashboardController;
+import org.yamdut.model.User;
 
 
 
@@ -42,11 +44,16 @@ public class App {
 
             // Dashboards for different roles
             PassengerDashboard passengerDashboard = new PassengerDashboard();
-            DriverDashboard driverDashboard = new DriverDashboard();
+            DriverDashboardView driverDashboardView = new DriverDashboardView("Demo Driver");
+            // Minimal driver user (id required by controller)
+            User driverUser = new User("Ram Bahadur Tamang", "driver@yamdut.com", "9800000000", "driver", "password", "DRIVER");
+            driverUser.setId(1);
+            new DriverDashboardController(driverDashboardView, driverUser);
             AdminDashboard adminDashboard = new AdminDashboard();
 
             screenManager.register("USER_DASHBOARD", passengerDashboard);
-            screenManager.register("DRIVER_DASHBOARD", driverDashboard);
+            screenManager.register("DRIVER_DASHBOARD", driverDashboardView);
+
             screenManager.register("ADMIN_DASHBOARD", adminDashboard);
 
             // Wire logout buttons to clear session and go back to login
@@ -54,10 +61,11 @@ public class App {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
             });
-            driverDashboard.getLogoutButton().addActionListener(e -> {
+            driverDashboardView.addLogoutListener(e -> {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
             });
+
             adminDashboard.getLogoutButton().addActionListener(e -> {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
