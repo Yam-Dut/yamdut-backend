@@ -4,10 +4,10 @@ import javax.swing.SwingWorker;
 import javax.swing.JOptionPane;
 
 import org.yamdut.core.ScreenManager;
-import org.yamdut.ui.login.LoginScreen;
 import org.yamdut.backend.model.User;
 import org.yamdut.backend.service.AuthService;
 import org.yamdut.utils.UserSession;
+import org.yamdut.view.login.LoginScreen;
 
 public class LoginController {
     private final AuthService authService;

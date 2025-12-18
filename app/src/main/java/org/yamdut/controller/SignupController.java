@@ -1,7 +1,7 @@
 package org.yamdut.controller;
 
 import org.yamdut.core.ScreenManager;
-import org.yamdut.ui.signup.SignUpScreen;
+import org.yamdut.view.signup.SignUpScreen;
 import org.yamdut.backend.service.EmailService;
 import org.yamdut.backend.service.OtpService;
 import org.yamdut.backend.service.UserService;
