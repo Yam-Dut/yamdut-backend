@@ -46,7 +46,7 @@ public class UserService {
      * The same account can later log in from the single login screen
      * and the backend will decide behaviour based on this role.
      */
-    public boolean registerUser(String fullName,
+    public User registerUser(String fullName,
                                 String email,
                                 String rawPassword,
                                 String phone,
@@ -63,7 +63,8 @@ public class UserService {
 
         boolean verified = false;
         User user = new User(fullName, email, phone, email, passwordHash, role, verified);
-        return userDAO.createUser(user);
+        userDAO.save(user);
+        return user;
     }
     /*
      helper method to register a user without full details(simpler version)
