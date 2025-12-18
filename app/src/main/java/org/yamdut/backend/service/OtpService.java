@@ -5,7 +5,14 @@ import org.yamdut.backend.model.OtpToken;
 import java.util.*;
 
 public class OtpService {
+    private static final OtpService instance = new OtpService();
     private static final Map<String, OtpToken> otpStore = new HashMap<>();
+
+    private OtpService() {}
+
+    public static OtpService getInstance() {
+        return instance;
+    }
 
     public String generateOtp(String email) {
         String otp = String.valueOf(100000 + new Random().nextInt(900000));
