@@ -4,8 +4,8 @@ import javax.swing.SwingWorker;
 import javax.swing.JOptionPane;
 
 import org.yamdut.core.ScreenManager;
-import org.yamdut.backend.model.User;
-import org.yamdut.backend.service.AuthService;
+import org.yamdut.model.User;
+import org.yamdut.service.AuthService;
 import org.yamdut.utils.UserSession;
 import org.yamdut.view.login.LoginScreen;
 
