@@ -20,9 +20,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import org.yamdut.backend.model.OtpToken;
 import org.yamdut.backend.model.User;
-import org.yamdut.backend.service.AuthService;
 import org.yamdut.backend.service.OtpService;
 import org.yamdut.backend.service.UserService;
 import org.yamdut.core.ScreenManager;
@@ -32,7 +30,6 @@ import org.yamdut.utils.Theme;
 import org.yamdut.utils.UserSession;
 
 public class OtpScreen extends JPanel {
-    private final AuthService authService;
     private final UserService userService;
     private final ScreenManager screenManager;
     private final User user;
@@ -50,7 +47,6 @@ public class OtpScreen extends JPanel {
     private boolean isVerified = false;
     
     public OtpScreen(User user, boolean isSignup, ScreenManager screenManager) {
-        this.authService = new AuthService();
         this.userService = new UserService();
         this.user = user;
         this.isSignup = isSignup;
@@ -198,7 +194,7 @@ public class OtpScreen extends JPanel {
             }
             
             // Store user in session
-            UserSession.setUser(user);
+            UserSession.getInstance().login(user);
             
             // Show success message
             JOptionPane.showMessageDialog(this,
@@ -231,7 +227,7 @@ public class OtpScreen extends JPanel {
     
     private void resendOtp() {
         OtpService otpService = new OtpService();
-        boolean sent = otpService.resendOtp(email, isSignup);
+        boolean sent = otpService.resendOtp(email);
         
         if (sent) {
             JOptionPane.showMessageDialog(this,
