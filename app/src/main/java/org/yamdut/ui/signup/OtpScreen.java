@@ -116,7 +116,7 @@ public class OtpScreen extends JPanel {
         resendButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         resendButton.setEnabled(false);
         
-        JLabel resendLabel = new JLabel("(60s)");
+        resendLabel = new JLabel("(60s)");
         resendLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         resendLabel.setForeground(Theme.TEXT_SECONDARY);
         
