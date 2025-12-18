@@ -186,9 +186,8 @@ public class OtpScreen extends JPanel {
         otpField.setEnabled(false);
         
         // Verify OTP
-        OtpToken otptoken = new OtpToken(email, otp, 0L);
         OtpService otpService = new OtpService();
-        boolean isValid = otpService.verifyOtp(email, otptoken);
+        boolean isValid = otpService.verifyOtp(email, otp);
         
         if (isValid) {
             isVerified = true;
@@ -231,7 +230,8 @@ public class OtpScreen extends JPanel {
     }
     
     private void resendOtp() {
-        boolean sent = authService.resendOtp(email, isSignup);
+        OtpService otpService = new OtpService();
+        boolean sent = otpService.resendOtp(email, isSignup);
         
         if (sent) {
             JOptionPane.showMessageDialog(this,
