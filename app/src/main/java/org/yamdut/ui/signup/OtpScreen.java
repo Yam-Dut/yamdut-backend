@@ -27,6 +27,7 @@ import org.yamdut.core.ScreenManager;
 import org.yamdut.ui.components.OtpField;
 import org.yamdut.ui.components.PrimaryButton;
 import org.yamdut.utils.Theme;
+import org.yamdut.utils.UserSession;
 
 public class OtpScreen extends JPanel {
     private final ScreenManager screenManager;
@@ -185,7 +186,11 @@ public class OtpScreen extends JPanel {
         boolean valid = otpController.verify(user, otp, isSignup);
         
         if (valid) {
+
+            UserSession.getInstance().login(user);
             JOptionPane.showMessageDialog(this, "Verification successful!", "Success", JOptionPane.INFORMATION_MESSAGE);            
+
+            screenManager.showDashBoardForRole(user.getRole());
         } else {
             JOptionPane.showMessageDialog(this, 
                 "Invalid or expired OTP. Please try again.", 
@@ -195,9 +200,7 @@ public class OtpScreen extends JPanel {
             // Reset UI
             otpField.clear();
             otpField.setFocus();
-            verifyButton.setText("Verify");
-            verifyButton.setEnabled(true);
-            otpField.setEnabled(true);
+            setVerifying(false);
         }
     }
     
