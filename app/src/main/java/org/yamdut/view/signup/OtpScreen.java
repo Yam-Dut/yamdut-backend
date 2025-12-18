@@ -20,10 +20,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import org.yamdut.backend.model.User;
 //import org.yamdut.backend.service.UserService;
 import org.yamdut.controller.OtpController;
 import org.yamdut.core.ScreenManager;
+import org.yamdut.model.User;
 import org.yamdut.utils.Theme;
 import org.yamdut.utils.UserSession;
 import org.yamdut.view.components.OtpField;

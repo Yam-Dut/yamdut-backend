@@ -1,7 +1,7 @@
 package org.yamdut.core;
 
 
-import org.yamdut.backend.model.*;
+import org.yamdut.model.*;
 import org.yamdut.view.signup.*;
 
 import javax.swing.*;

@@ -1,6 +1,6 @@
 package org.yamdut.utils;
 
-import org.yamdut.backend.model.*;
+import org.yamdut.model.*;
 
 /**
  * Simple singleton to keep track of the currently logged-in user
