@@ -1,10 +1,9 @@
 package org.yamdut.controller;
 
-import org.yamdut.backend.service.OtpService;
-import org.yamdut.backend.service.UserService;
 import org.yamdut.core.ScreenManager;
-// import org.yamdut.utils.UserSession;
-import org.yamdut.backend.model.User;
+import org.yamdut.model.User;
+import org.yamdut.service.OtpService;
+import org.yamdut.service.UserService;
 
 public class OtpController {
     private final UserService userService;

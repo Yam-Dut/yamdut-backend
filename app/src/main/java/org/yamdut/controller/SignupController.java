@@ -1,11 +1,11 @@
 package org.yamdut.controller;
 
 import org.yamdut.core.ScreenManager;
+import org.yamdut.model.*;
+import org.yamdut.service.EmailService;
+import org.yamdut.service.OtpService;
+import org.yamdut.service.UserService;
 import org.yamdut.view.signup.SignUpScreen;
-import org.yamdut.backend.service.EmailService;
-import org.yamdut.backend.service.OtpService;
-import org.yamdut.backend.service.UserService;
-import org.yamdut.backend.model.*;
 
 import javax.swing.*;
 
