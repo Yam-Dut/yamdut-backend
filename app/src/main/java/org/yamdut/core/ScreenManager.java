@@ -1,7 +1,9 @@
 package org.yamdut.core;
 
 
-import org.yamdut.backend.model.Role;
+import org.yamdut.backend.model.*;
+import org.yamdut.ui.signup.*;
+
 
 import javax.swing.*;
 import java.util.HashMap;
@@ -34,25 +36,15 @@ public class ScreenManager {
         switch (role) {
             case PASSENGER -> show("PASSENGER_DASHBOARD");
             case DRIVER -> show("DRIVER_DASHBOARD");
-            case ADMIN -> show("ADMIN DASHBOARD");
+            case ADMIN -> show("ADMIN_DASHBOARD");
             default -> throw new IllegalStateException("Unknow role: " + role);
         }
     }
-    // public void showOtpScreen(User user, boolean isSignup) {
-    //     String email = user.getEmail();
+    public void showOtpScreen(User user, boolean isSignup) {
+        OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
+        screens.put("OTP", otpScreen);
 
-    //     OtpService otpService = new OtpService();
-    //     String otp = otpService.generateOtp(email);
+        show("OTP");
 
-    //     EmailService emailService = new EmailService();
-    //     emailService.sendOtpEmail(email, otp);
-
-    //     OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
-
-    //     String screenKey = "OTP_" + email;
-    //     screens.put(screenKey, otpScreen);
-
-    //     show(screenKey);
-
-    // };
+    };
 }
