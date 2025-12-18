@@ -37,6 +37,7 @@ public class App {
             loginScreen = new LoginScreen(loginController);
             signupScreen = new SignUpScreen(signupController);
 
+
             screenManager.register("LOGIN", loginScreen);
             screenManager.register("SIGNUP", signupScreen);
 
@@ -45,7 +46,7 @@ public class App {
             DriverDashboard driverDashboard = new DriverDashboard();
             AdminDashboard adminDashboard = new AdminDashboard();
 
-            screenManager.register("USER_DASHBOARD", passengerDashboard);
+            screenManager.register("PASSENGER_DASHBOARD", passengerDashboard);
             screenManager.register("DRIVER_DASHBOARD", driverDashboard);
             screenManager.register("ADMIN_DASHBOARD", adminDashboard);
 
