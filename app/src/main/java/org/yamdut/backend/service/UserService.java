@@ -22,20 +22,20 @@ public class UserService {
         return userDAO.getUserByUsername(email) != null;
     }
 
-    public void createUnverifiedUser(String email, String passwordHash, Role role) {
+    public void createUnverifiedUser(String fullname, String email, String phone, String passwordHash, Role role) {
         String defaultFullName = email.split("@")[0];
         String defaultPhone = "";
 
         User user = new User(
-            null,
+            fullname,
             email,
-            null,
-            email,
+            phone,
+            email, //userrname
             passwordHash,
             role, 
             false
         );
-        userDAO.save(user);
+        userDAO.save(user);i
     }
 
     public void activateUser(String email) {
@@ -68,15 +68,19 @@ public class UserService {
      helper method to register a user without full details(simpler version)
      */
 
-     public boolean registerBasicUser(String email, String rawPassword, boolean isDriver) {
+    public boolean registerBasicUser(String fullName, String email, String rawPassword, String phone, boolean isDriver) {
         if (exists(email)) {
             return false;
         }
 
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
-        String role = isDriver ? "DRIVER" : "PASSENGER";
+        Role role = isDriver ? Role.DRIVER : Role.PASSENGER;
 
-        createUnverifiedUser(email, passwordHash, role);
+        createUnverifiedUser(fullName, email, phone, passwordHash, role);
         return true;
-     }
+    }
+
+    public User getUserByEmail(String email) {
+        return UserDAO.getUserByUsername(email);
+    }
 }
