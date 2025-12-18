@@ -21,28 +21,36 @@ public class SignupController {
     }
 
     public void signup(String fullName, String email, String password, String phone, boolean isDriver) {
-        SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean,Void>() {
+        SwingWorker<User, Void> worker = new SwingWorker<User,Void>() {
             private String errorMessage;
-            @Override
-            protected Boolean doInBackground() {
-                try {
-                    boolean created = userService.registerBasicUser(fullName, email, password, phone, isDriver);
-                    if (!created) {
-                        errorMessage = "Account with this email already exists";
-                        return false;
-                    }
 
+            @Override
+            protected User doInBackground() {
+                try {
+                    User user = userService.registerBasicUser(
+                        fullName,
+                        email, 
+                        password,
+                        phone,
+                        isDriver
+                    );
+                    
+                    if (user == null) {
+                        errorMessage = "Account with this email already exists";
+                        return null;
+                    }
+                    
                     OtpService otpService = new OtpService();
                     String otp = otpService.generateOtp(email);
 
                     EmailService emailService = new EmailService();
                     emailService.sendOtpEmail(email, otp);
 
-                    return true;
+                    return user;
 
                 } catch (Exception e) {
                     errorMessage = e.getMessage();
-                    return false;
+                    return null;
                 }
             }
 
@@ -50,13 +58,9 @@ public class SignupController {
             protected void done() {
                 view.setLoading(false);
                 try {
-                    if (get()) {
-                        view.showSuccess("Account created Successfully, Please verify Otp sent to your email.");
-                        view.clearFields();
-
-                        User newUser = userService.getUserByEmail(email);
-
-                        screenManager.showOtpScreen(newUser, true);
+                    User user = get();
+                    if (user != null) {
+                        screenManager.showOtpScreen(user, isDriver);
                     } else {
                         view.showError(
                             errorMessage != null
