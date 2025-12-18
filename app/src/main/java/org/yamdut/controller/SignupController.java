@@ -60,7 +60,7 @@ public class SignupController {
                 try {
                     User user = get();
                     if (user != null) {
-                        screenManager.showOtpScreen(user, isDriver);
+                        screenManager.showOtpScreen(user, true);
                     } else {
                         view.showError(
                             errorMessage != null
