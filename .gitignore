@@ -14,7 +14,7 @@ D:\java\YamDut\yamdut-backend\gradle.properties
 # App module
 app/build/
 app/gradle.properties
-
+app/src/main/java/org/yamdut/database/MySqlConfig.java
 # Secrets
 app/src/main/resources/config/application.properties
 app/src/main/resources/web/token.js

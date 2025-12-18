@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YamDut - Driver Navigation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #navigation-info {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+            max-width: 300px;
+        }
+        
+        .nav-item {
+            margin: 8px 0;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .nav-item strong {
+            color: #667eea;
+        }
+        
+        #trip-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+            color: #333;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .status-pending {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-arrived {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-in-progress {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        
+        .status-completed {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .leaflet-container {
+            background: #f0f0f0;
+        }
+        
+        .route-info {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 999;
+            max-width: 280px;
+        }
+        
+        .route-info h4 {
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 13px;
+        }
+        
+        .route-item {
+            margin: 5px 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <div id="navigation-info">
+        <h4 style="color: #333; margin-bottom: 10px;">Navigation Info</h4>
+        <div class="nav-item"><strong>Pickup:</strong> Kathmandu</div>
+        <div class="nav-item"><strong>Coordinates:</strong> 27.7172, 85.3240</div>
+        <div class="nav-item" style="margin-top: 10px;"><strong>Dropoff:</strong> Nearby Location</div>
+        <div class="nav-item"><strong>Coordinates:</strong> 27.7300, 85.3400</div>
+    </div>
+    
+    <div id="trip-status">
+        Status: <span class="status-badge status-pending">PENDING</span>
+    </div>
+    
+    <div class="route-info">
+        <h4>Route Information</h4>
+        <div class="route-item">Distance: Calculating...</div>
+        <div class="route-item">Estimated Time: Calculating...</div>
+        <div class="route-item">Turn-by-turn navigation active</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let pickupMarker, dropoffMarker, driverMarker;
+        let routeLine;
+        let currentTripStatus = 'PENDING';
+        
+        const MAPBOX_TOKEN = "pk.eyJ1IjoiYWJoaXNoZWs2OSIsImEiOiJjbWo2MXBweGsxdGwzM2ZzYmlwMTBmeHV5In0.zuYgQ4F5JiCH6R6znK5T-w";
+        const PICKUP_COORDS = [27.7172, 85.3240];
+        const DROPOFF_COORDS = [27.7300, 85.3400];
+        
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c).toFixed(2);
+        }
+        
+        function initializeMap() {
+            try {
+                map = L.map('map').setView(PICKUP_COORDS, 14);
+                
+                L.tileLayer(
+                    `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
+                    {
+                        maxZoom: 19,
+                        tileSize: 512,
+                        zoomOffset: -1,
+                        attribution: ' Mapbox  OpenStreetMap',
+                        accessToken: MAPBOX_TOKEN
+                    }
+                ).addTo(map);
+                
+                pickupMarker = L.marker(PICKUP_COORDS, {
+                    title: 'Pickup Location'
+                }).addTo(map).bindPopup('<div style="font-weight:bold;"> Pickup Location<br/>Kathmandu</div>');
+                
+                dropoffMarker = L.marker(DROPOFF_COORDS, {
+                    title: 'Dropoff Location'
+                }).addTo(map).bindPopup('<div style="font-weight:bold;"> Dropoff Location<br/>Nearby Area</div>');
+                
+                driverMarker = L.marker(PICKUP_COORDS, {
+                    title: 'Your Location'
+                }).addTo(map).bindPopup('<div style="font-weight:bold;"> Your Location</div>');
+                
+                routeLine = L.polyline([PICKUP_COORDS, DROPOFF_COORDS], {
+                    color: '#667eea',
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '5, 5'
+                }).addTo(map);
+                
+                const group = new L.featureGroup([pickupMarker, dropoffMarker]);
+                map.fitBounds(group.getBounds().pad(0.1));
+                
+                const distance = calculateDistance(PICKUP_COORDS[0], PICKUP_COORDS[1], 
+                                                  DROPOFF_COORDS[0], DROPOFF_COORDS[1]);
+                const estimatedTime = Math.ceil(distance / 40 * 60);
+                
+                document.querySelector('.route-info .route-item:nth-child(2)').textContent = 
+                    'Distance: ' + distance + ' km';
+                document.querySelector('.route-info .route-item:nth-child(3)').textContent = 
+                    'Estimated Time: ' + estimatedTime + ' minutes';
+                
+            } catch (error) {
+                console.error('Map initialization error:', error);
+            }
+        }
+        
+        function updateTripStatus(status) {
+            currentTripStatus = status;
+            const statusBadge = document.querySelector('.status-badge');
+            statusBadge.textContent = status;
+            statusBadge.className = 'status-badge status-' + status.toLowerCase().replace('_', '-');
+        }
+        
+        function updateDriverLocation(lat, lng) {
+            if (!map || !driverMarker) return;
+            
+            driverMarker.setLatLng([lat, lng]);
+            map.panTo([lat, lng], { animate: true, duration: 1 });
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeMap);
+        } else {
+            initializeMap();
+        }
+    </script>
+</body>
+</html>

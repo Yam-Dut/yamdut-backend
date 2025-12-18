@@ -1,8 +1,8 @@
 package org.yamdut.controller;
 
 import org.yamdut.core.ScreenManager;
-import org.yamdut.ui.signup.SignUpScreen;
-import org.yamdut.backend.service.UserService;
+import org.yamdut.service.UserService;
+import org.yamdut.view.auth.SignUpScreen;
 
 import javax.swing.*;
 

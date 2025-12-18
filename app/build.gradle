@@ -25,6 +25,7 @@ javafx {
 dependencies {
     implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
     implementation "org.openjfx:javafx-web:${javafxVersion}:win"
+    implementation "com.mysql:mysql-connector-j:8.0.33"
 }
 
 application {
