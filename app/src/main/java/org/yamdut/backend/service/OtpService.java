@@ -37,4 +37,8 @@ public class OtpService {
         }
         return valid;
     }
+    public boolean resendOtp(String email) {
+        generateOtp(email);
+        return true;
+    }
 }
