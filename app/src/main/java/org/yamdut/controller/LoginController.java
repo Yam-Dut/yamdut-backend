@@ -67,7 +67,7 @@ public class LoginController {
                             break;
 
                         case PASSENGER: // if you ever store USER instead of PASSENGER
-                            screenManager.show("USER_DASHBOARD");
+                            screenManager.show("PASSENGER_DASHBOARD");
                             break;
 
                         case ADMIN:
