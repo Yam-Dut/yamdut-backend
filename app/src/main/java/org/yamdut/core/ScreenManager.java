@@ -1,8 +1,9 @@
 package org.yamdut.core;
 
 import org.yamdut.ui.signup.*;
-import org.yamdut.backend.service.AuthService;
 import org.yamdut.backend.model.User;
+import org.yamdut.backend.service.EmailService;
+import org.yamdut.backend.service.OtpService;
 
 
 import javax.swing.*;
@@ -31,22 +32,20 @@ public class ScreenManager {
         frame.repaint();
     }
     public void showOtpScreen(User user, boolean isSignup) {
+        String email = user.getEmail();
+
+        OtpService otpService = new OtpService();
+        String otp = otpService.generateOtp(email);
+
+        EmailService emailService = new EmailService();
+        emailService.sendOtpEmail(email, otp);
+
         OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
-        
-        // Generate and send OTP
-        AuthService authService = new AuthService();
-        String otp = authService.generateAndSendOtp(
-            user.getEmail(), 
-            isSignup ? "signup" : "login"
-        );
-        
-        // Store the OTP in service
-        // (Your AuthService should handle this)
-        
-        // Show OTP screen
-        String screenName = "OTP_" + user.getEmail();
-        screens.put(screenName, otpScreen);
-        mainPanel.add(otpScreen, screenName);
-        show(screenName);
-    }
+
+        String screenKey = "OTP_" + email;
+        screens.put(screenKey, otpScreen);
+
+        show(screenKey);
+
+    };
 }
