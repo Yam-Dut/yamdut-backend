@@ -3,6 +3,7 @@ package org.yamdut.backend.config;
 import java.util.Properties;
 import io.github.cdimascio.dotenv.Dotenv;
 
+//gmail config for otp
 public class EmailConfig {
   private static final Properties props = new Properties();
   private static final Dotenv dotenv = Dotenv.load();
