@@ -38,7 +38,11 @@ public class UserService {
     }
 
     public void activateUser(String email) {
-        userDAO.markVerified(email);
+        User user = userDAO.getUserByUsername(email);
+        if (user != null) {
+            user.setVerified(true);
+            userDAO.update(user);
+        }
     }
     /**
      * Registers a new user as either DRIVER or PASSENGER.
@@ -88,6 +92,20 @@ public class UserService {
             role,
             false
         );
+
+        userDAO.save(user);
+        return user;
+    }
+
+    public User authenticate(String email, String rawPassword) {
+        User user = userDAO.getUserByUsername(email);
+        if (user == null) return null;
+        if (!PasswordHasher.verifyPassword(rawPassword, user.getPasswordHash())) {
+            return null;
+        }
+        if (!user.getVerified()) {
+            throw new IllegalStateException("Please verify your account first");
+        }
         return user;
     }
 
