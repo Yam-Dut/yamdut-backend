@@ -25,6 +25,8 @@ javafx {
 dependencies {
     implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
     implementation "org.openjfx:javafx-web:${javafxVersion}:win"
+    implementation "com.sun.mail:jakarta.mail:2.0.1"
+    implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 }
 
 application {

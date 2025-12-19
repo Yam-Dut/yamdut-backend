@@ -1,6 +1,6 @@
 package org.yamdut.utils;
 
-import org.yamdut.backend.model.User;
+import org.yamdut.model.*;
 
 /**
  * Simple singleton to keep track of the currently logged-in user
@@ -37,17 +37,15 @@ public class UserSession {
     }
 
     public boolean isDriver() {
-        return currentUser != null && "DRIVER".equalsIgnoreCase(currentUser.getRole());
+        return currentUser != null && Role.DRIVER.equals(currentUser.getRole());
     }
 
     public boolean isPassenger() {
-        if (currentUser == null || currentUser.getRole() == null) return false;
-        String role = currentUser.getRole().toUpperCase();
-        return "PASSENGER".equals(role) || "USER".equals(role);
+        return currentUser != null && Role.PASSENGER.equals(currentUser.getRole());
     }
 
     public boolean isAdmin() {
-        return currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        return currentUser != null && Role.ADMIN.equals(currentUser.getRole());
     }
 
     public String getUserEmail() {
