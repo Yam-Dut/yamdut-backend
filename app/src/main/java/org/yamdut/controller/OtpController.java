@@ -24,6 +24,7 @@ public class OtpController {
 
         if (valid && isSignup) {
                 userService.activateUser(user.getEmail());
+                otpService.clearOtp(user.getEmail());
         }
         return valid;
     }
