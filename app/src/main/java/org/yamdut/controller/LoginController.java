@@ -32,8 +32,12 @@ public class LoginController {
             @Override
             protected User doInBackground() {
                 try {
-                    // We use email-as-username; backend returns user with role
-                    return authService.login(email, password);
+                    User user = authService.login(email, password);
+
+                    if (user == null) {
+                        throw new IllegalStateException("User does not exists. Please sign up and verify.");
+                    }
+                    return user;
                 } catch (Exception e) {
                     error = e.getMessage();
                     return null;
