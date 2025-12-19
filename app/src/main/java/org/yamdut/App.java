@@ -75,6 +75,7 @@ public class App {
 
             screenManager.show("LOGIN");
             frame.setVisible(true);
+            //preeti-patch
         });
     }
 }
