@@ -30,13 +30,10 @@ public class OtpService {
     public boolean verifyOtp(String email, String enteredOtp) {
         OtpToken token = otpStore.get(email);
 
-        if (token == null) {
+        if (token == null || token.isExpired()) {
+            otpStore.remove(email);
             return false;
         }
-        if (token.isExpired()) {
-            return false;
-        }
-
         boolean valid = token.getOtp().equals(enteredOtp);
 
         if (valid) {
@@ -47,5 +44,9 @@ public class OtpService {
     public boolean resendOtp(String email) {
         generateOtp(email);
         return true;
+    }
+
+    public void clearOtp(String email) {
+        otpStore.remove(email);
     }
 }
