@@ -3,6 +3,7 @@ package org.yamdut.core;
 
 import org.yamdut.model.*;
 import org.yamdut.view.signup.*;
+import org.yamdut.service.*;
 
 import javax.swing.*;
 import java.util.HashMap;
