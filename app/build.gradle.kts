@@ -29,6 +29,7 @@ dependencies {
     implementation("org.openjfx:javafx-controls:$javaFxVersion:linux")
     implementation("org.openjfx:javafx-graphics:$javaFxVersion:linux")
     implementation("org.openjfx:javafx-web:$javaFxVersion:linux")
+    implementation("com.sun.mail:jakarta.mail:2.0.1")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

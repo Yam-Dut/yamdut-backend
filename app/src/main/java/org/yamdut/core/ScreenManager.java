@@ -1,6 +1,9 @@
 package org.yamdut.core;
 
 
+import org.yamdut.model.*;
+import org.yamdut.view.signup.*;
+
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,4 +29,21 @@ public class ScreenManager {
         frame.revalidate();
         frame.repaint();
     }
+
+    //centralized role based navigation
+    public void showDashBoardForRole(Role role) {
+        switch (role) {
+            case PASSENGER -> show("PASSENGER_DASHBOARD");
+            case DRIVER -> show("DRIVER_DASHBOARD");
+            case ADMIN -> show("ADMIN_DASHBOARD");
+            default -> throw new IllegalStateException("Unknow role: " + role);
+        }
+    }
+    public void showOtpScreen(User user, boolean isSignup) {
+        OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
+        screens.put("OTP", otpScreen);
+
+        show("OTP");
+
+    };
 }

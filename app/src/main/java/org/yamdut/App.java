@@ -3,13 +3,13 @@ package org.yamdut;
 import javax.swing.*;
 
 import org.yamdut.core.ScreenManager;
-import org.yamdut.ui.signup.SignUpScreen;
-import org.yamdut.ui.login.LoginScreen;
-import org.yamdut.ui.dashboard.PassengerDashboard;
-import org.yamdut.ui.dashboard.DriverDashboard;
-import org.yamdut.ui.dashboard.AdminDashboard;
-import org.yamdut.ui.map.MapPanel;
 import org.yamdut.utils.UserSession;
+import org.yamdut.view.dashboard.AdminDashboard;
+import org.yamdut.view.dashboard.DriverDashboard;
+import org.yamdut.view.dashboard.PassengerDashboard;
+import org.yamdut.view.login.LoginScreen;
+import org.yamdut.view.map.MapPanel;
+import org.yamdut.view.signup.SignUpScreen;
 import org.yamdut.controller.LoginController;
 import org.yamdut.controller.SignupController;
 
@@ -37,6 +37,7 @@ public class App {
             loginScreen = new LoginScreen(loginController);
             signupScreen = new SignUpScreen(signupController);
 
+
             screenManager.register("LOGIN", loginScreen);
             screenManager.register("SIGNUP", signupScreen);
 
@@ -45,7 +46,7 @@ public class App {
             DriverDashboard driverDashboard = new DriverDashboard();
             AdminDashboard adminDashboard = new AdminDashboard();
 
-            screenManager.register("USER_DASHBOARD", passengerDashboard);
+            screenManager.register("PASSENGER_DASHBOARD", passengerDashboard);
             screenManager.register("DRIVER_DASHBOARD", driverDashboard);
             screenManager.register("ADMIN_DASHBOARD", adminDashboard);
 
