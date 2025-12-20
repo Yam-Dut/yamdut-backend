@@ -41,8 +41,6 @@ public class SignupController {
                     }
                     User savedUser = userService.registerBasicUser(fullName, email, password, phone, isDriver);
 
-                    //create temporary users in memory
-
                     //generate otp
                     String otp = otpService.generateOtp(email);
                     //send otp to the email;
