@@ -26,3 +26,11 @@ app/src/main/resources/config/application.properties
 /Task
 
 .vscode
+
+app/bin/main/resources/config/application.properties
+app/src/main/resources/db/
+app/bin/
+app/build/
+
+*Test.java
+DatabaseChecker.java
