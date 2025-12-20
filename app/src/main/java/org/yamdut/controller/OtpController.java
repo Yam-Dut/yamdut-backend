@@ -19,12 +19,11 @@ public class OtpController {
 
 
     public boolean verify(User user, String otp, boolean isSignup) {
-        OtpService otpService = OtpService.getInstance();
         boolean valid = otpService.verifyOtp(user.getEmail(), otp);
 
         if (valid && isSignup) {
-                userService.activateUser(user.getEmail());
-                otpService.clearOtp(user.getEmail());
+            userService.activateUser(user.getEmail());
+            otpService.clearOtp(user.getEmail());
         }
         return valid;
     }
