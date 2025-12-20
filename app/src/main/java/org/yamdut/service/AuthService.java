@@ -1,15 +1,11 @@
 package org.yamdut.service;
 
-import java.nio.channels.IllegalSelectorException;
-
-import javax.management.RuntimeErrorException;
 
 import org.yamdut.dao.UserDAO;
 import org.yamdut.dao.UserDAOImpl;
 import org.yamdut.helpers.PasswordHasher;
 import org.yamdut.model.*;
 
-import jakarta.mail.MessagingException;
 
 /**
  * Authentication service responsible for validating credentials and
@@ -23,34 +19,14 @@ public class AuthService {
 
     private final UserService userService;
     private final UserDAO userDAO;
-    private final EmailService emailService;
     private final OtpService otpService;
 
     public AuthService() {
         this.userService = new UserService();
-        this.emailService = new EmailService();
         this.otpService = OtpService.getInstance();
         this.userDAO = new UserDAOImpl();
     }
-
-
-    public void signup(String email, String rawPassword, Role role) {
-        if (userService.exists(email)) {
-            throw new RuntimeException("User already exists");
-        }
-        String passwordHash = PasswordHasher.hashPassword(rawPassword);
-        String fullName = email.split("@")[0];
-        String phone = "";
-        userService.createUnverifiedUser(fullName, email, phone, passwordHash, role);
-
-        String otpcode = otpService.generateOtp(email);
-        try {
-            emailService.sendOtpEmail(email, otpcode);
-        } catch (MessagingException e) {
-            throw new IllegalStateException("Invalid email address or email service failure", e);
-        }
-    }
-
+    
     public void verifySignup(String email, String otp) {
 
         boolean valid = otpService.verifyOtp(email, otp);
