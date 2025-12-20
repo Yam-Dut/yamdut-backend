@@ -1,9 +1,11 @@
 package org.yamdut.service;
 
+import javax.management.RuntimeErrorException;
+
 import org.yamdut.dao.UserDAO;
 import org.yamdut.dao.UserDAOImpl;
-import org.yamdut.model.User;
-import org.yamdut.utils.PasswordHasher;
+import org.yamdut.helpers.PasswordHasher;
+import org.yamdut.model.*;
 
 /**
  * Authentication service responsible for validating credentials and
@@ -15,12 +17,40 @@ import org.yamdut.utils.PasswordHasher;
  */
 public class AuthService {
 
+    private final UserService userService;
     private final UserDAO userDAO;
+    private final EmailService emailService;
+    private final OtpService otpService;
 
     public AuthService() {
+        this.userService = new UserService();
+        this.emailService = new EmailService();
+        this.otpService = OtpService.getInstance();
         this.userDAO = new UserDAOImpl();
     }
 
+
+    public void signup(String email, String rawPassword, Role role) {
+        if (userService.exists(email)) {
+            throw new RuntimeException("User already exists");
+        }
+        String passwordHash = PasswordHasher.hashPassword(rawPassword);
+        String fullName = email.split("@")[0];
+        String phone = "";
+        userService.createUnverifiedUser(fullName, email, phone, passwordHash, role);
+
+        String otpcode = otpService.generateOtp(email);
+        emailService.sendOtpEmail(email, otpcode);
+    }
+
+    public void verifySignup(String email, String otp) {
+
+        boolean valid = otpService.verifyOtp(email, otp);
+        if (!valid) {
+            throw new RuntimeErrorException(null, "Invalid OTP");
+        }
+        userService.activateUser(email);
+    }
     /**
      * Attempts to authenticate a user.
      *

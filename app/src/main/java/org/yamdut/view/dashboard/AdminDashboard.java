@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/dashboards/AdminDashboard.java
 package org.yamdut.view.dashboards;
+========
+package org.yamdut.view.dashboard;
+>>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/dashboard/AdminDashboard.java
 
 import javax.swing.*;
 import java.awt.*;

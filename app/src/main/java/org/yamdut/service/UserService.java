@@ -2,23 +2,50 @@ package org.yamdut.service;
 
 import org.yamdut.dao.UserDAO;
 import org.yamdut.dao.UserDAOImpl;
+import org.yamdut.helpers.PasswordHasher;
+import org.yamdut.model.Role;
 import org.yamdut.model.User;
-import org.yamdut.utils.PasswordHasher;
 
 public class UserService {
 
     private final UserDAO userDAO;
+    //private final User user;
 
     public UserService() {
         this.userDAO = new UserDAOImpl();
+      //  this.user = new User();
     }
 
+    /*
+     checks if the user with the given email exists
+     */
+
+    public boolean exists(String email) {
+        return userDAO.getUserByUsername(email) != null;
+    }
+
+    public void createUnverifiedUser(String fullname, String email, String phone, String passwordHash, Role role) {
+        User user = new User(
+            fullname,
+            email,
+            phone,
+            email, //userrname
+            passwordHash,
+            role, 
+            false
+        );
+        userDAO.save(user);
+    }
+
+    public void activateUser(String email) {
+        userDAO.markVerified(email);
+    }
     /**
      * Registers a new user as either DRIVER or PASSENGER.
      * The same account can later log in from the single login screen
      * and the backend will decide behaviour based on this role.
      */
-    public boolean registerUser(String fullName,
+    public User registerUser(String fullName,
                                 String email,
                                 String rawPassword,
                                 String phone,
@@ -31,9 +58,40 @@ public class UserService {
         }
 
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
-        String role = isDriver ? "DRIVER" : "PASSENGER";
+        Role role = isDriver ? Role.DRIVER : Role.PASSENGER;
 
-        User user = new User(fullName, email, phone, email, passwordHash, role);
-        return userDAO.createUser(user);
+        boolean verified = false;
+        User user = new User(fullName, email, phone, email, passwordHash, role, verified);
+        userDAO.save(user);
+        return user;
+    }
+    /*
+     helper method to register a user without full details(simpler version)
+     */
+
+    public User registerBasicUser(String fullName, String email, String rawPassword, String phone, boolean isDriver) {
+        if (exists(email)) {
+            return null;
+        }
+
+        String passwordHash = PasswordHasher.hashPassword(rawPassword);
+        Role role = isDriver ? Role.DRIVER : Role.PASSENGER;
+
+        String username = email.split("@")[0];
+
+        User user = new User(
+            fullName,
+            email,
+            phone,
+            username,
+            passwordHash,
+            role,
+            false
+        );
+        return user;
+    }
+
+    public User findByEmail(String email) {
+        return userDAO.getUserByUsername(email);
     }
 }

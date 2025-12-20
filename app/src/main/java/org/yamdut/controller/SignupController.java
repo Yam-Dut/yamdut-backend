@@ -1,8 +1,11 @@
 package org.yamdut.controller;
 
 import org.yamdut.core.ScreenManager;
+import org.yamdut.model.*;
+import org.yamdut.service.EmailService;
+import org.yamdut.service.OtpService;
 import org.yamdut.service.UserService;
-import org.yamdut.view.auth.SignUpScreen;
+import org.yamdut.view.signup.SignUpScreen;
 
 import javax.swing.*;
 
@@ -17,18 +20,37 @@ public class SignupController {
         this.userService = new UserService();
     }
 
-    public void signup(String name, String email, String password, String phone, boolean isDriver) {
-        SwingWorker<Boolean, Void> worker = new SwingWorker<Boolean,Void>() {
+    public void signup(String fullName, String email, String password, String phone, boolean isDriver) {
+        SwingWorker<User, Void> worker = new SwingWorker<User,Void>() {
             private String errorMessage;
+
             @Override
-            protected Boolean doInBackground() {
+            protected User doInBackground() {
                 try {
-                    return userService.registerUser(
-                        name, email, password, phone, isDriver
-                    ); 
+                    User user = userService.registerBasicUser(
+                        fullName,
+                        email, 
+                        password,
+                        phone,
+                        isDriver
+                    );
+                    
+                    if (user == null) {
+                        errorMessage = "Account with this email already exists";
+                        return null;
+                    }
+                    
+                    OtpService otpService = OtpService.getInstance();
+                    String otp = otpService.generateOtp(email);
+
+                    EmailService emailService = new EmailService();
+                    emailService.sendOtpEmail(email, otp);
+
+                    return user;
+
                 } catch (Exception e) {
                     errorMessage = e.getMessage();
-                    return false;
+                    return null;
                 }
             }
 
@@ -36,10 +58,9 @@ public class SignupController {
             protected void done() {
                 view.setLoading(false);
                 try {
-                    if (get()) {
-                        view.showSuccess("Account created successfully");
-                        view.clearFields();
-                        screenManager.show("LOGIN");
+                    User user = get();
+                    if (user != null) {
+                        screenManager.showOtpScreen(user, true);
                     } else {
                         view.showError(
                             errorMessage != null
@@ -52,6 +73,7 @@ public class SignupController {
                 }
             }
         };
+        view.setLoading(true);
         worker.execute();
     }
     public void navigateToLogin() {

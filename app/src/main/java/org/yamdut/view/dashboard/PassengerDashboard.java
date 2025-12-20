@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/dashboards/PassengerDashboard.java
 package org.yamdut.view.dashboards;
+========
+package org.yamdut.view.dashboard;
+>>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/dashboard/PassengerDashboard.java
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,17 +10,17 @@ import java.awt.*;
 import org.yamdut.utils.Theme;
 import org.yamdut.view.components.BaseDashboard;
 
-public class DriverDashboard extends BaseDashboard {
-    private JButton goOnlineButton;
-    private JButton viewRequestsButton;
-    private JButton earningsButton;
+public class PassengerDashboard extends BaseDashboard {
+    private JButton bookRideButton;
+    private JButton rideHistoryButton;
+    private JButton paymentMethodsButton;
+    private JButton showMapButton;
     private JLabel statusLabel;
-    private boolean isOnline = false;
 
-    public DriverDashboard() {
+    public PassengerDashboard() {
         super();
         initContent();
-        setWelcomeMessage("Welcome, Driver!");
+        setWelcomeMessage("Welcome, Passenger!");
     }
 
     @Override
@@ -31,7 +35,7 @@ public class DriverDashboard extends BaseDashboard {
         gbc.insets = new Insets(10, 0, 10, 0);
 
         // Title
-        JLabel titleLabel = new JLabel("Driver Dashboard");
+        JLabel titleLabel = new JLabel("Passenger Dashboard");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         titleLabel.setForeground(Theme.TEXT_PRIMARY);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -46,27 +50,34 @@ public class DriverDashboard extends BaseDashboard {
                 BorderFactory.createEmptyBorder(15, 20, 15, 20)
         ));
 
-        statusLabel = new JLabel("Status: OFFLINE");
-        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        statusLabel.setForeground(Color.RED);
+        statusLabel = new JLabel("Ready to book a ride!");
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        statusLabel.setForeground(Theme.TEXT_PRIMARY);
         statusPanel.add(statusLabel);
 
         gbc.insets = new Insets(0, 0, 30, 0);
         contentPanel.add(statusPanel, gbc);
 
         // Buttons Panel
-        JPanel buttonsPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        JPanel buttonsPanel = new JPanel(new GridLayout(4, 1, 10, 10));
         buttonsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
         buttonsPanel.setPreferredSize(new Dimension(300, 200));
 
-        goOnlineButton = createDashboardButton("🚗 Go Online", new Color(46, 204, 113));
-        buttonsPanel.add(goOnlineButton);
+        // Book Ride Button
+        bookRideButton = createDashboardButton("🚖 Book a Ride", Theme.COLOR_PRIMARY);
+        buttonsPanel.add(bookRideButton);
 
-        viewRequestsButton = createDashboardButton("📱 View Ride Requests", Theme.COLOR_PRIMARY);
-        buttonsPanel.add(viewRequestsButton);
+        // Ride History Button
+        rideHistoryButton = createDashboardButton("📋 Ride History", new Color(52, 152, 219));
+        buttonsPanel.add(rideHistoryButton);
 
-        earningsButton = createDashboardButton("💰 View Earnings", new Color(241, 196, 15));
-        buttonsPanel.add(earningsButton);
+        // Payment Methods Button
+        paymentMethodsButton = createDashboardButton("💳 Payment Methods", new Color(46, 204, 113));
+        buttonsPanel.add(paymentMethodsButton);
+
+        // Map Button
+        showMapButton = createDashboardButton("🗺️ View Map", new Color(155, 89, 182));
+        buttonsPanel.add(showMapButton);
 
         contentPanel.add(buttonsPanel, gbc);
 
@@ -76,8 +87,8 @@ public class DriverDashboard extends BaseDashboard {
         statsPanel.setPreferredSize(new Dimension(400, 100));
 
         statsPanel.add(createStatCard("Total Rides", "0", Theme.COLOR_PRIMARY));
-        statsPanel.add(createStatCard("Rating", "0.0", new Color(241, 196, 15)));
-        statsPanel.add(createStatCard("Earnings", "$0.00", new Color(46, 204, 113)));
+        statsPanel.add(createStatCard("5★ Ratings", "0.0", new Color(241, 196, 15)));
+        statsPanel.add(createStatCard("Wallet", "$0.00", new Color(46, 204, 113)));
 
         contentPanel.add(statsPanel, gbc);
 
@@ -118,35 +129,24 @@ public class DriverDashboard extends BaseDashboard {
         return card;
     }
 
-    public void toggleOnlineStatus() {
-        isOnline = !isOnline;
-        if (isOnline) {
-            statusLabel.setText("Status: ONLINE");
-            statusLabel.setForeground(new Color(46, 204, 113));
-            goOnlineButton.setText("🚗 Go Offline");
-            goOnlineButton.setBackground(new Color(231, 76, 60));
-        } else {
-            statusLabel.setText("Status: OFFLINE");
-            statusLabel.setForeground(Color.RED);
-            goOnlineButton.setText("🚗 Go Online");
-            goOnlineButton.setBackground(new Color(46, 204, 113));
-        }
+    public JButton getBookRideButton() {
+        return bookRideButton;
     }
 
-    public JButton getGoOnlineButton() {
-        return goOnlineButton;
+    public JButton getRideHistoryButton() {
+        return rideHistoryButton;
     }
 
-    public JButton getViewRequestsButton() {
-        return viewRequestsButton;
+    public JButton getPaymentMethodsButton() {
+        return paymentMethodsButton;
     }
 
-    public JButton getEarningsButton() {
-        return earningsButton;
+    public JButton getShowMapButton() {
+        return showMapButton;
     }
 
-    public boolean isOnline() {
-        return isOnline;
+    public void updateStatus(String status) {
+        statusLabel.setText(status);
     }
 }
 
