@@ -1,11 +1,15 @@
 package org.yamdut.service;
 
+import java.nio.channels.IllegalSelectorException;
+
 import javax.management.RuntimeErrorException;
 
 import org.yamdut.dao.UserDAO;
 import org.yamdut.dao.UserDAOImpl;
 import org.yamdut.helpers.PasswordHasher;
 import org.yamdut.model.*;
+
+import jakarta.mail.MessagingException;
 
 /**
  * Authentication service responsible for validating credentials and
@@ -40,14 +44,18 @@ public class AuthService {
         userService.createUnverifiedUser(fullName, email, phone, passwordHash, role);
 
         String otpcode = otpService.generateOtp(email);
-        emailService.sendOtpEmail(email, otpcode);
+        try {
+            emailService.sendOtpEmail(email, otpcode);
+        } catch (MessagingException e) {
+            throw new IllegalStateException("Invalid email address or email service failure", e);
+        }
     }
 
     public void verifySignup(String email, String otp) {
 
         boolean valid = otpService.verifyOtp(email, otp);
         if (!valid) {
-            throw new RuntimeErrorException(null, "Invalid OTP");
+            throw new IllegalStateException("Invalid OTP");
         }
         userService.activateUser(email);
     }
@@ -59,12 +67,16 @@ public class AuthService {
      * @return the authenticated {@link User} (including role) or {@code null} if auth fails
      */
     public User login(String identifier, String rawPassword) {
-        User user = userDAO.getUserByUsername(identifier);
+        User user = userDAO.getUserByEmail(identifier);
         if (user == null) {
             return null;
         }
 
         boolean ok = PasswordHasher.verifyPassword(rawPassword, user.getPasswordHash());
-        return ok ? user : null;
+        if (!ok) return null;
+        if (!user.getVerified()) {
+            throw new IllegalStateException("Please verify your account first.");
+        }
+        return user;
     }
 }
