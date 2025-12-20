@@ -26,8 +26,7 @@ public class EmailService {
     Send otp email (SignUp / Login verification)
      */
 
-    public void sendOtpEmail(String toEmail, String otp) {
-        try {
+    public void sendOtpEmail(String toEmail, String otp) throws MessagingException {
             Message message = new MimeMessage(session);
 
             message.setFrom(new InternetAddress(EmailConfig.getSenderEmail()));
@@ -37,10 +36,6 @@ public class EmailService {
 
             Transport.send(message);
             System.out.println("OTP email sent to " + toEmail);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Failed to send OTP email");
-        }
     } 
 
     private String buildOtpHtml(String otp) {
