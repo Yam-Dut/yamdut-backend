@@ -1,6 +1,6 @@
 package org.yamdut.controller;
 
-import org.yamdut.view.dashboards.DriverDashboardView;
+import org.yamdut.view.dashboard.DriverDashboard;
 import org.yamdut.model.User;
 import org.yamdut.model.Trip;
 import org.yamdut.model.Trip.TripStatus;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DriverDashboardController {
-    private DriverDashboardView view;
+    private DriverDashboard view;
     private User currentDriver;
     private List<Trip> pendingRequests;
     private Trip currentTrip;
@@ -29,7 +29,7 @@ public class DriverDashboardController {
     private double targetLat;
     private double targetLng;
 
-    public DriverDashboardController(DriverDashboardView view, User currentDriver) {
+    public DriverDashboardController(DriverDashboard view, User currentDriver) {
         this.view = view;
         this.currentDriver = currentDriver;
         this.pendingRequests = new ArrayList<>();
@@ -127,6 +127,23 @@ public class DriverDashboardController {
 
     private void setupListeners() {
         view.addLogoutListener(e -> handleLogout());
+        // Open map in browser helper: prompt for token if needed, then open
+        try {
+            JButton openBtn = view.getOpenMapBrowserButton();
+            if (openBtn != null) {
+                openBtn.addActionListener(e -> {
+                    String token = JOptionPane.showInputDialog(null,
+                            "Enter Mapbox token (leave blank to use MAPBOX_TOKEN env):",
+                            "Mapbox Token", JOptionPane.QUESTION_MESSAGE);
+                    if (token != null && !token.isBlank()) {
+                        view.setMapboxToken(token.trim());
+                    }
+                    // refresh map and open
+                    updateMapView(new double[]{currentDriverLat, currentDriverLng}, "Idle");
+                    view.openMapInBrowser();
+                });
+            }
+        } catch (Exception ignored) {}
     }
 
     private void displayRequests() {
@@ -513,7 +530,8 @@ public class DriverDashboardController {
         double dLat = driverCoord != null ? driverCoord[0] : currentDriverLat;
         double dLng = driverCoord != null ? driverCoord[1] : currentDriverLng;
 
-        final String MAPBOX_TOKEN = "<pk.eyJ1IjoiYWJoaXNoZWs2OSIsImEiOiJjbWo2MXBweGsxdGwzM2ZzYmlwMTBmeHV5In0.zuYgQ4F5JiCH6R6znK5T-w";
+        String MAPBOX_TOKEN = System.getenv("MAPBOX_TOKEN");
+        if (MAPBOX_TOKEN == null) MAPBOX_TOKEN = "pk.eyJ1IjoiYWJoaXNoZWs2OSIsImEiOiJjbWo2MXBweGsxdGwzM2ZzYmlwMTBmeHV5In0.zuYgQ4F5JiCH6R6znK5T-w";
 
         // build markers
         String pickupMarker = "";
