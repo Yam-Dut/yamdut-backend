@@ -4,6 +4,7 @@ import org.yamdut.core.ScreenManager;
 import org.yamdut.model.User;
 import org.yamdut.service.OtpService;
 import org.yamdut.service.UserService;
+import org.yamdut.service.EmailService;
 
 public class OtpController {
     private final UserService userService;
@@ -29,6 +30,9 @@ public class OtpController {
     }
 
     public boolean resendOtp(User user) {
-        return otpService.resendOtp(user.getEmail());
+        String newOtp = otpService.generateOtp(user.getEmail());
+        EmailService emailService = new EmailService();
+        emailService.sendOtpEmail(user.getEmail(), newOtp);
+        return true;
     }
 }

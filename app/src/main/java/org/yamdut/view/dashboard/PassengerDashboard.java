@@ -1,9 +1,14 @@
+<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/dashboards/PassengerDashboard.java
+package org.yamdut.view.dashboards;
+========
 package org.yamdut.view.dashboard;
+>>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/dashboard/PassengerDashboard.java
 
 import javax.swing.*;
 import java.awt.*;
 
 import org.yamdut.utils.Theme;
+import org.yamdut.view.components.BaseDashboard;
 
 public class PassengerDashboard extends BaseDashboard {
     private JButton bookRideButton;

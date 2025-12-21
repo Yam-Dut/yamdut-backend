@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/components/BaseDashboard.java
 package org.yamdut.view.components;
-========
-package org.yamdut.view.dashboard;
->>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/dashboard/BaseDashboard.java
 
 import javax.swing.*;
 import java.awt.*;

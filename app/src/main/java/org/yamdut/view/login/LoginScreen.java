@@ -1,9 +1,18 @@
+<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/auth/LoginScreen.java
+package org.yamdut.view.auth;
+
+import org.yamdut.utils.*;
+import org.yamdut.controller.LoginController;
+import org.yamdut.view.components.InputField;
+import org.yamdut.view.components.PrimaryButton;
+========
 package org.yamdut.view.login;
 
 import org.yamdut.utils.*;
 import org.yamdut.view.components.InputField;
 import org.yamdut.view.components.PrimaryButton;
 import org.yamdut.controller.*;
+>>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/login/LoginScreen.java
 
 import javax.swing.border.*;
 import javax.swing.*;

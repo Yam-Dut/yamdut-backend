@@ -10,14 +10,14 @@ D:\java\YamDut\yamdut-backend\build
 D:\java\YamDut\yamdut-backend\gradle.properties
 
 *.class
-
+.idea
 # App module
 app/build/
 app/gradle.properties
-
+app/src/main/java/org/yamdut/database/MySqlConfig.java
 # Secrets
 app/src/main/resources/config/application.properties
-app/src/main/resources/web/token.js
+#app/src/main/resources/web/token.js
 .env
 
 /Get
@@ -26,3 +26,11 @@ app/src/main/resources/web/token.js
 /Task
 
 .vscode
+
+app/bin/main/resources/config/application.properties
+app/src/main/resources/db/
+app/bin/
+app/build/
+
+*Test.java
+DatabaseChecker.java

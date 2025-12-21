@@ -6,9 +6,9 @@ package org.yamdut.service;
  */
 public class MapService {
 
-    // Demo token from your example – in real apps keep this outside source control
-    private static final String MAPBOX_TOKEN =
-            "pk.eyJ1IjoieWFtZHV0YXBwIiwiYSI6ImNsdnBnaDZ3bzAxbGQya3BxbGpmN3N0ZXMifQ.dlqj5Uc75Wnq2D4XEQw7aQ";
+        // Demo token from your example – in real apps keep this outside source control
+        private static final String HARDCODED_MAPBOX_TOKEN =
+          "pk.eyJ1IjoieWFtZHV0YXBwIiwiYSI6ImNsdnBnaDZ3bzAxbGQya3BxbGpmN3N0ZXMifQ.dlqj5Uc75Wnq2D4XEQw7aQ";
 
     // lat, lng, name
     public static final double[][] MAJOR_CITIES = {
@@ -20,7 +20,9 @@ public class MapService {
     };
 
     public static String getMapboxToken() {
-        return MAPBOX_TOKEN;
+      String env = System.getenv("MAPBOX_TOKEN");
+      if (env != null && !env.isBlank()) return env;
+      return HARDCODED_MAPBOX_TOKEN;
     }
 
     /**
@@ -47,7 +49,7 @@ public class MapService {
           .append("<div>Zoom: <span id='zoom'>12</span></div>")
           .append("</div>")
           .append("<script>")
-          .append("mapboxgl.accessToken='").append(MAPBOX_TOKEN).append("';")
+            .append("mapboxgl.accessToken='").append(getMapboxToken()).append("';")
           .append("const center=[").append(lng).append(",").append(lat).append("];")
           .append("const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/streets-v11',")
           .append("center:center,zoom:12,pitch:0,bearing:0});")
@@ -76,7 +78,7 @@ public class MapService {
           .append("<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>")
           .append("<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet'/>")
           .append("</head><body><div id='map'></div><script>")
-          .append("mapboxgl.accessToken='").append(MAPBOX_TOKEN).append("';")
+            .append("mapboxgl.accessToken='").append(getMapboxToken()).append("';")
           .append("const start=[").append(startLng).append(",").append(startLat).append("];")
           .append("const end=[").append(endLng).append(",").append(endLat).append("];")
           .append("const map=new mapboxgl.Map({container:'map',style:'mapbox://styles/mapbox/streets-v11',")

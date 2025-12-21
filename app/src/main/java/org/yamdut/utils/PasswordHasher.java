@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:app/src/main/java/org/yamdut/utils/PasswordHasher.java
 package org.yamdut.utils;
-========
-package org.yamdut.helpers;
->>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/helpers/PasswordHasher.java
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

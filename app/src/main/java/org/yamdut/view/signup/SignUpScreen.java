@@ -1,4 +1,11 @@
+<<<<<<<< HEAD:app/src/main/java/org/yamdut/view/auth/SignUpScreen.java
+package org.yamdut.view.auth;
+
+import org.yamdut.view.components.InputField;
+import org.yamdut.view.components.PrimaryButton;
+========
 package org.yamdut.view.signup;
+>>>>>>>> 66332dfeaf8362fee426a76653917012e42a3180:app/src/main/java/org/yamdut/view/signup/SignUpScreen.java
 
 import java.awt.BorderLayout;
 import java.awt.Color;
