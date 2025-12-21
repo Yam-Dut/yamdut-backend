@@ -261,6 +261,15 @@ public class LoginScreen extends JPanel {
             JOptionPane.ERROR_MESSAGE
         );
     }
+
+    public void reset() {
+        setLoading(false);
+        clearFields();
+    }
+    // public boolean isLoading() {
+    //     return isLoading;
+    // }
+    
     public void showSuccess(String message) {
         JOptionPane.showMessageDialog(
             this,

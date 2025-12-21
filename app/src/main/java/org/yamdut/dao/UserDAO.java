@@ -9,5 +9,7 @@ public interface UserDAO {
 
     void markVerified(String email);
 
-    User getUserByUsername(String email);
+    User getUserByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

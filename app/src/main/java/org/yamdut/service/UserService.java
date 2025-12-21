@@ -1,5 +1,6 @@
 package org.yamdut.service;
 
+
 import org.yamdut.dao.UserDAO;
 import org.yamdut.dao.UserDAOImpl;
 import org.yamdut.helpers.PasswordHasher;
@@ -21,7 +22,7 @@ public class UserService {
      */
 
     public boolean exists(String email) {
-        return userDAO.getUserByUsername(email) != null;
+        return userDAO.getUserByEmail(email) != null;
     }
 
     public void createUnverifiedUser(String fullname, String email, String phone, String passwordHash, Role role) {
@@ -40,6 +41,7 @@ public class UserService {
     public void activateUser(String email) {
         userDAO.markVerified(email);
     }
+    
     /**
      * Registers a new user as either DRIVER or PASSENGER.
      * The same account can later log in from the single login screen
@@ -52,7 +54,7 @@ public class UserService {
                                 boolean isDriver) {
 
         // Use email as the unique username/identifier for login
-        User existing = userDAO.getUserByUsername(email);
+        User existing = userDAO.getUserByEmail(email);
         if (existing != null) {
             throw new IllegalStateException("An account with this email already exists");
         }
@@ -70,8 +72,8 @@ public class UserService {
      */
 
     public User registerBasicUser(String fullName, String email, String rawPassword, String phone, boolean isDriver) {
-        if (exists(email)) {
-            return null;
+        if (userDAO.existsByEmail(email)) {
+            throw new IllegalStateException("Account with this email already exists.");
         }
 
         String passwordHash = PasswordHasher.hashPassword(rawPassword);
@@ -88,10 +90,24 @@ public class UserService {
             role,
             false
         );
+
+        userDAO.save(user);
+        return user;
+    }
+
+    public User authenticate(String email, String rawPassword) {
+        User user = userDAO.getUserByEmail(email);
+        if (user == null) return null;
+        if (!PasswordHasher.verifyPassword(rawPassword, user.getPasswordHash())) {
+            return null;
+        }
+        if (!user.getVerified()) {
+            throw new IllegalStateException("Please verify your account first");
+        }
         return user;
     }
 
     public User findByEmail(String email) {
-        return userDAO.getUserByUsername(email);
+        return userDAO.getUserByEmail(email);
     }
 }

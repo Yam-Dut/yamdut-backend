@@ -36,6 +36,10 @@ public class UserSession {
         return currentUser != null;
     }
 
+    public boolean isLoggedOut() {
+        return currentUser == null;
+    }
+
     public boolean isDriver() {
         return currentUser != null && Role.DRIVER.equals(currentUser.getRole());
     }

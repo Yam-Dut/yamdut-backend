@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'org.openjfx.javafxplugin' version '0.1.0'
     id 'application'
 }
 
@@ -14,19 +13,47 @@ repositories {
 }
 
 ext {
-    javafxVersion = "21.0.2"
-}
-
-javafx {
-    version = "${javafxVersion}"
-    modules = ['javafx.controls', 'javafx.web']
+    javafxVersion = '21.0.2'
+    os = org.gradle.internal.os.OperatingSystem.current()
 }
 
 dependencies {
-    implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
-    implementation "org.openjfx:javafx-web:${javafxVersion}:win"
-    implementation "com.sun.mail:jakarta.mail:2.0.1"
+
+    /* 
+       JavaFX (auto OS detect)
+        */
+    if (os.isLinux()) {
+        implementation "org.openjfx:javafx-controls:${javafxVersion}:linux"
+        implementation "org.openjfx:javafx-graphics:${javafxVersion}:linux"
+        implementation "org.openjfx:javafx-web:${javafxVersion}:linux"
+    } else if (os.isWindows()) {
+        implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
+        implementation "org.openjfx:javafx-graphics:${javafxVersion}:win"
+        implementation "org.openjfx:javafx-web:${javafxVersion}:win"
+    } else {
+        throw new GradleException("Unsupported OS for JavaFX")
+    }
+
+    /* 
+       Swing Map Viewer
+        */
+    implementation 'org.jxmapviewer:jxmapviewer2:2.6'
+
+    /* 
+       Jakarta Mail
+        */
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+    /* 
+       DB + Env
+        */
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
+    /* 
+       Testing
+        */
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
 }
 
 application {

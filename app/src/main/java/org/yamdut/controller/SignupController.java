@@ -7,17 +7,23 @@ import org.yamdut.service.OtpService;
 import org.yamdut.service.UserService;
 import org.yamdut.view.signup.SignUpScreen;
 
+import jakarta.mail.MessagingException;
+
 import javax.swing.*;
 
 public class SignupController {
     private final ScreenManager screenManager;
     private final UserService userService;
     private final SignUpScreen view;
+    private final OtpService otpService;
+    private final EmailService emailService;
 
     public SignupController (SignUpScreen view, ScreenManager screenManager) {
         this.view = view;
         this.screenManager = screenManager;
         this.userService = new UserService();
+        this.otpService = OtpService.getInstance();
+        this.emailService = new EmailService();
     }
 
     public void signup(String fullName, String email, String password, String phone, boolean isDriver) {
@@ -27,29 +33,27 @@ public class SignupController {
             @Override
             protected User doInBackground() {
                 try {
-                    User user = userService.registerBasicUser(
-                        fullName,
-                        email, 
-                        password,
-                        phone,
-                        isDriver
-                    );
+                    User existing = userService.findByEmail(email);
                     
-                    if (user == null) {
-                        errorMessage = "Account with this email already exists";
+                    if (existing != null && existing.getVerified()) {
+                        errorMessage = "Account with this email already exists.";
                         return null;
                     }
-                    
-                    OtpService otpService = OtpService.getInstance();
-                    String otp = otpService.generateOtp(email);
+                    User savedUser = userService.registerBasicUser(fullName, email, password, phone, isDriver);
 
-                    EmailService emailService = new EmailService();
+                    //generate otp
+                    String otp = otpService.generateOtp(email);
+                    //send otp to the email;
                     emailService.sendOtpEmail(email, otp);
 
-                    return user;
-
+                    return savedUser;
+                } catch (MessagingException me) {
+                    me.printStackTrace();
+                    errorMessage = "Failed to send OTP email. Please check your email address";
+                    return null;
                 } catch (Exception e) {
-                    errorMessage = e.getMessage();
+                    e.printStackTrace();
+                    errorMessage = "Unexpected error occured: " + e.getMessage();
                     return null;
                 }
             }
@@ -59,23 +63,21 @@ public class SignupController {
                 view.setLoading(false);
                 try {
                     User user = get();
-                    if (user != null) {
-                        screenManager.showOtpScreen(user, true);
+                    if (user != null && errorMessage == null) {
+                       screenManager.showOtpScreen(user, true); 
                     } else {
-                        view.showError(
-                            errorMessage != null
-                                ? errorMessage
-                                : "Signup Failed"
-                        );
+                        view.showError(errorMessage != null ? errorMessage : "Signup Failed!");
                     }
                 } catch (Exception e) {
-                    view.showError("Unexpected error occured");
+                    e.printStackTrace();
+                    view.showError("Unexpected error: " + e.getMessage());
                 }
             }
         };
         view.setLoading(true);
         worker.execute();
     }
+
     public void navigateToLogin() {
         screenManager.show("LOGIN");
     }
