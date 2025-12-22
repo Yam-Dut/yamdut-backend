@@ -17,26 +17,20 @@ ext {
 }
 
 def os = org.gradle.internal.os.OperatingSystem.current()
-def classifier = ""
-if (os.isWindows()) {
-    classifier = "win"
-} else if (os.isMacOsX()) {
-    classifier = "mac"
-} else if (os.isLinux()) {
-    classifier = "linux"
-}
+def classifier = os.isWindows() ? 'win' : os.isMacOsX() ? 'mac' : 'linux'
 
 dependencies {
-    implementation "org.openjfx:javafx-base:$javaFxVersion:$classifier"
-    implementation "org.openjfx:javafx-controls:$javaFxVersion:$classifier"
-    implementation "org.openjfx:javafx-graphics:$javaFxVersion:$classifier"
-    implementation "org.openjfx:javafx-web:$javaFxVersion:$classifier"
-    implementation "org.openjfx:javafx-swing:$javaFxVersion:$classifier" 
-}
+    implementation "org.openjfx:javafx-base:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-controls:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-graphics:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-web:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-swing:$javafxVersion:$classifier" 
+
     /* 
        Jakarta Mail
         */
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
+
 
     /* 
        DB + Env
@@ -48,7 +42,7 @@ dependencies {
        Testing
         */
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
-
+}
 
 application {
     mainClass = 'org.yamdut.App'
