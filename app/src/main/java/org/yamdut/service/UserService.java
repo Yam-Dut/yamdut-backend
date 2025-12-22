@@ -24,9 +24,7 @@ public class UserService {
         this.passengerDAO = new PassengerDAOImpl();
     }
 
-    /*
-     * checks if the user with the given email exists
-     */
+    
     public boolean exists(String email) {
         return userDAO.getUserByEmail(email) != null;
     }
