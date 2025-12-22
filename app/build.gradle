@@ -37,7 +37,7 @@ dependencies {
     /* 
        Swing Map Viewer
         */
-    implementation 'org.jxmapviewer:jxmapviewer2:2.6'
+    implementation 'org.jxmapviewer:jxmapviewer2:2.8'
 
     /* 
        Jakarta Mail
