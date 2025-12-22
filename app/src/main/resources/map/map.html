@@ -1,65 +1,649 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Yamdut Live Trip Map</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-html, body, #map { height: 100%; margin: 0; padding: 0; }
-#status {
-    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-    background: white; padding: 6px 12px; border-radius: 6px;
-    font-family: Arial, sans-serif; font-size: 13px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 999;
-}
-</style>
+  <meta charset="utf-8" />
+  <title>Yamdut - Live Ride Map</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.5/leaflet.awesome-markers.css" />
+  
+  <style>
+    /* Reset & Base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+    
+    /* Main Layout */
+    #map {
+      height: 100%;
+      width: 100%;
+      background: #e8eef4;
+    }
+    
+    /* Custom Map Controls */
+    .leaflet-control-container .leaflet-top {
+      top: 70px;
+    }
+    .map-icon {
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,.35))
+        transition: transform .2s ease;
+    }
+
+    .map-icon:hover {
+        transform: scale(1.1);
+    }
+    
+    .driver-icon {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    
+    .passenger-icon {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+    }
+    
+    .destination-icon {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+    
+    .pickup-icon {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+    
+    /* Info Panel */
+    .info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      width: 280px;
+      display: none;
+    }
+    
+    .info-panel.visible {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .info-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .info-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    
+    .info-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    
+    .info-content {
+      font-size: 14px;
+      color: #475569;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .info-label {
+      font-weight: 500;
+      color: #64748b;
+    }
+    
+    .info-value {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    
+    /* Route Animation */
+    .moving-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+      animation: pulse 2s infinite;
+      z-index: 1001;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+    
+    /* Loading Overlay */
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid #3b82f6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Legend */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      font-size: 12px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .driver-color { background: #10b981; }
+    .passenger-color { background: #3b82f6; }
+    .destination-color { background: #ef4444; }
+    .pickup-color { background: #f59e0b; }
+    .route-color { background: #3b82f6; }
+  </style>
 </head>
+
 <body>
-<div id="map"></div>
-<div id="status">Waiting for driver location…</div>
+  <!-- Loading Overlay -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Info Panel -->
+  <div class="info-panel" id="infoPanel">
+    <div class="info-header">
+      <div class="info-icon driver-icon" id="infoIcon">
+        🚗
+      </div>
+      <div class="info-title" id="infoTitle">Driver Information</div>
+    </div>
+    <div class="info-content">
+      <div class="info-row">
+        <span class="info-label">ID:</span>
+        <span class="info-value" id="infoId">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Name:</span>
+        <span class="info-value" id="infoName">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Status:</span>
+        <span class="info-value" id="infoStatus">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Speed:</span>
+        <span class="info-value" id="infoSpeed">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ETA:</span>
+        <span class="info-value" id="infoEta">-</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color driver-color"></div>
+      <span>Driver</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color passenger-color"></div>
+      <span>Passenger</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color pickup-color"></div>
+      <span>Pickup Point</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color destination-color"></div>
+      <span>Destination</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color route-color"></div>
+      <span>Route</span>
+    </div>
+  </div>
+  
+  <!-- Map Container -->
+  <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-let MAPBOX_TOKEN = "###";
-let map, driverMarker, routeLine;
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.5/leaflet.awesome-markers.min.js"></script>
+  <script>
+    // =============================================
+    // CONFIGURATION
+    // =============================================
+    const CONFIG = {
+      center: [27.7172, 85.3240], // Kathmandu
+      zoom: 14,
+      tileLayer: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '© OpenStreetMap contributors'
+    };
 
-const pickup = [27.7172, 85.3240]; // Kathmandu
-const drop   = [27.7300, 85.3400];
+    // =============================================
+    // STATE MANAGEMENT
+    // =============================================
+    const state = {
+      map: null,
+      markers: new Map(), // id -> marker
+      routeLine: null,
+      movingDot: null,
+      currentEntity: null,
+      routePoints: [],
+      simulationInterval: null,
+      simulationIndex: 0
+    };
 
-function setMapboxToken(token) {
-    MAPBOX_TOKEN = token;
-}
+    // =============================================
+    // UTILITY FUNCTIONS
+    // =============================================
+    const utils = {
+      showLoading(show) {
+        document.getElementById('loading').classList.toggle('visible', show);
+      },
 
-function initMap() {
-    map = L.map('map').setView(pickup, 14);
+      showInfoPanel(show) {
+        document.getElementById('infoPanel').classList.toggle('visible', show);
+      },
 
-    L.tileLayer(
-        `https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`,
-        {
-            maxZoom: 19,
-            tileSize: 512,
-            zoomOffset: -1,
-            attribution: "© OpenStreetMap © Mapbox"
+      updateInfoPanel(entity) {
+        if (!entity) return;
+        
+        document.getElementById('infoIcon').textContent = 
+          entity.type === 'driver' ? '🚗' :
+          entity.type === 'passenger' ? '👤' : '📍';
+          
+        document.getElementById('infoTitle').textContent = 
+          entity.type === 'driver' ? 'Driver Information' :
+          entity.type === 'passenger' ? 'Passenger Information' : 'Location Details';
+          
+        document.getElementById('infoId').textContent = entity.id || '-';
+        document.getElementById('infoName').textContent = entity.name || '-';
+        document.getElementById('infoStatus').textContent = entity.status || 'Active';
+        document.getElementById('infoSpeed').textContent = entity.speed ? `${entity.speed} km/h` : '-';
+        document.getElementById('infoEta').textContent = entity.eta || '-';
+        
+        this.showInfoPanel(true);
+      },
+
+      createIcon(type) {
+        const file = {
+          driver: 'driver.png',
+          passenger: 'passenger.png',
+          destination: 'destination.png',
+          pickup: 'pickup.png'
+        }[type] || 'driver.png';
+        
+        return L.icon({
+          className: `custom-div-icon ${className}`,
+          iconUrl: window.ICON_BASE + file,
+          iconSize: [38, 38],
+          iconAnchor: [19, 19],
+          popupAnchor: [0, -15]
+          className: 'map-icon'
+        });
+      },
+
+      getIconEmoji(type) {
+        return {
+          driver: '🚗',
+          passenger: '👤',
+          destination: '📍',
+          pickup: '🎯'
+        }[type] || '📍';
+      },
+
+      formatPopup(entity) {
+        return `
+          <div style="padding: 8px; font-family: sans-serif;">
+            <div style="font-weight: 600; font-size: 14px; color: #1e293b; margin-bottom: 4px;">
+              ${entity.name || entity.type.toUpperCase()}
+            </div>
+            <div style="font-size: 12px; color: #64748b;">
+              ${entity.type === 'driver' ? '🟢 Available' : '📍 Location'}
+            </div>
+            ${entity.eta ? `<div style="font-size: 12px; color: #3b82f6; margin-top: 4px;">
+              ⏱️ ETA: ${entity.eta}
+            </div>` : ''}
+          </div>
+        `;
+      }
+    };
+
+    // =============================================
+    // MAP INITIALIZATION
+    // =============================================
+    function initMap() {
+      utils.showLoading(true);
+      
+      // Initialize map
+      state.map = L.map('map').setView(CONFIG.center, CONFIG.zoom);
+      
+      // Add tile layer
+      L.tileLayer(CONFIG.tileLayer, {
+        maxZoom: 19,
+        attribution: CONFIG.attribution
+      }).addTo(state.map);
+      
+      // Add scale control
+      L.control.scale({ imperial: false }).addTo(state.map);
+      
+      utils.showLoading(false);
+      
+      console.log('Map initialized successfully');
+    }
+
+    // =============================================
+    // JAVA-CONTROLLED API
+    // =============================================
+    const api = {
+      showEntities(entities) {
+        // Clear existing markers
+        state.markers.forEach(marker => state.map.removeLayer(marker));
+        state.markers.clear();
+        
+        // Add new markers
+        entities.forEach(entity => {
+          const icon = utils.createIcon(entity.type);
+          const marker = L.marker([entity.lat, entity.lon], { icon })
+            .addTo(state.map)
+            .bindPopup(utils.formatPopup(entity));
+          
+          marker.on('click', () => {
+            utils.updateInfoPanel(entity);
+            state.currentEntity = entity;
+          });
+          
+          state.markers.set(entity.id, marker);
+        });
+        
+        // Auto-fit bounds if we have markers
+        if (entities.length > 0) {
+          const markers = Array.from(state.markers.values());
+          const group = L.featureGroup(markers);
+          state.map.fitBounds(group.getBounds().pad(0.1));
         }
-    ).addTo(map);
+        
+        console.log(`Displayed ${entities.length} entities`);
+      },
 
-    L.marker(pickup).addTo(map).bindPopup("Pickup Location 📍");
-    L.marker(drop).addTo(map).bindPopup("Drop Location 🎯");
+      drawRoute(routePoints) {
+        // Clear existing route
+        if (state.routeLine) {
+          state.map.removeLayer(state.routeLine);
+        }
+        
+        state.routePoints = routePoints;
+        
+        if (routePoints.length > 1) {
+          // Create polyline with gradient effect
+          const latLngs = routePoints.map(p => [p.lat, p.lon]);
+          
+          state.routeLine = L.polyline(latLngs, {
+            color: '#3b82f6',
+            weight: 5,
+            opacity: 0.8,
+            lineCap: 'round',
+            lineJoin: 'round',
+            dashArray: '10, 10'
+          }).addTo(state.map);
+          
+          // Fit bounds to route
+          state.map.fitBounds(state.routeLine.getBounds().pad(0.2));
+          
+          console.log(`Route drawn with ${routePoints.length} points`);
+        }
+      },
 
-    driverMarker = L.marker(pickup).addTo(map).bindPopup("Driver 🚕").openPopup();
-    routeLine = L.polyline([pickup, drop], { color: "blue", weight: 4 }).addTo(map);
+      startSimulation() {
+        if (state.routePoints.length < 2) {
+          console.error('No route available for simulation');
+          return;
+        }
+        
+        this.stopSimulation();
+        
+        state.simulationIndex = 0;
+        
+        // Create moving dot
+        const startPos = state.routePoints[0];
+        state.movingDot = L.marker([startPos.lat, startPos.lon], {
+          icon: L.divIcon({
+            className: 'moving-dot',
+            iconSize: [12, 12]
+          })
+        }).addTo(state.map);
+        
+        // Start simulation
+        state.simulationInterval = setInterval(() => {
+          if (state.simulationIndex >= state.routePoints.length - 1) {
+            this.stopSimulation();
+            console.log('Simulation completed');
+            return;
+          }
+          
+          state.simulationIndex++;
+          const pos = state.routePoints[state.simulationIndex];
+          
+          // Smoothly move the dot
+          state.movingDot.setLatLng([pos.lat, pos.lon]);
+          
+          // Center map on dot if it's near the edge
+          const bounds = state.map.getBounds();
+          const dotPos = state.movingDot.getLatLng();
+          
+          if (!bounds.contains(dotPos)) {
+            state.map.panTo(dotPos);
+          }
+          
+        }, 100); // Update every 100ms for smooth animation
+        
+        console.log('Simulation started');
+      },
 
-    document.getElementById("status").innerText = "Live tracking started";
-}
+      stopSimulation() {
+        if (state.simulationInterval) {
+          clearInterval(state.simulationInterval);
+          state.simulationInterval = null;
+        }
+        
+        if (state.movingDot) {
+          state.map.removeLayer(state.movingDot);
+          state.movingDot = null;
+        }
+        
+        state.simulationIndex = 0;
+        console.log('Simulation stopped');
+      },
 
-function updateDriverLocation(lat, lng) {
-    if (!driverMarker) return;
-    driverMarker.setLatLng([lat, lng]);
-    map.panTo([lat, lng], { animate: true });
-    document.getElementById("status").innerText = `Driver at ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-}
+      updateEntityPosition(entityId, position) {
+        const marker = state.markers.get(entityId);
+        if (marker) {
+          // Smooth transition
+          marker.setLatLng([position.lat, position.lon], {
+            duration: 1000,
+            easeLinearity: 0.25
+          });
+          
+          // Update popup if open
+          if (marker.isPopupOpen()) {
+            marker.setPopupContent(utils.formatPopup({
+              ...state.currentEntity,
+              lat: position.lat,
+              lon: position.lon
+            }));
+          }
+        }
+      },
 
-document.addEventListener('DOMContentLoaded', initMap);
-</script>
+      clearMap() {
+        // Clear markers
+        state.markers.forEach(marker => state.map.removeLayer(marker));
+        state.markers.clear();
+        
+        // Clear route
+        if (state.routeLine) {
+          state.map.removeLayer(state.routeLine);
+          state.routeLine = null;
+        }
+        
+        // Stop simulation
+        this.stopSimulation();
+        
+        // Hide info panel
+        utils.showInfoPanel(false);
+        
+        // Reset view
+        state.map.setView(CONFIG.center, CONFIG.zoom);
+        
+        console.log('Map cleared');
+      }
+    };
+
+    // =============================================
+    // WINDOW EXPORTS (for Java control)
+    // =============================================
+    window.YamdutMap = {
+      init: initMap,
+      showEntities: api.showEntities,
+      drawRoute: api.drawRoute,
+      startSimulation: api.startSimulation,
+      stopSimulation: api.stopSimulation,
+      updateEntityPosition: api.updateEntityPosition,
+      clearMap: api.clearMap,
+      
+      // Utility methods for Java
+      showLoading: utils.showLoading,
+      setCenter: (lat, lon, zoom) => {
+        state.map.setView([lat, lon], zoom || CONFIG.zoom);
+      },
+      
+      // Get current map state (for debugging)
+      getState: () => ({
+        markerCount: state.markers.size,
+        hasRoute: !!state.routeLine,
+        isSimulating: !!state.simulationInterval,
+        center: state.map.getCenter(),
+        zoom: state.map.getZoom()
+      })
+    };
+
+    // =============================================
+    // INITIALIZATION
+    // =============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      
+      // Close info panel when clicking outside
+      document.addEventListener('click', (e) => {
+        const infoPanel = document.getElementById('infoPanel');
+        if (!infoPanel.contains(e.target) && !e.target.closest('.custom-div-icon')) {
+          utils.showInfoPanel(false);
+        }
+      });
+      
+      // Escape key closes info panel
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          utils.showInfoPanel(false);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
