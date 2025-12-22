@@ -1,5 +1,6 @@
 package org.yamdut.view.map;
 
+import org.yamdut.model.MapEntity;
 import org.yamdut.utils.*;
 
 import org.jxmapviewer.JXMapViewer;
@@ -16,6 +17,7 @@ import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,9 +25,11 @@ import java.util.Set;
 public class MapPanel extends JPanel {
 
     private final JXMapViewer mapViewer;
+    
     private final Set<Waypoint> waypoints = new HashSet<>();
     private final WaypointPainter<Waypoint> waypointPainter = 
         new org.jxmapviewer.viewer.WaypointPainter<>();
+
 
     private List<GeoPosition> route;
     private int routeIndex = 0;
@@ -71,14 +75,11 @@ public class MapPanel extends JPanel {
         return header;
     }
 
-    // Public API
-
-    public void setCenter(double lat, double lon) {
-        mapViewer.setAddressLocation(new GeoPosition(lat, lon));
-    }
-
-    public void showDriver(double lat, double lon) {
-        updateWaypoint(new GeoPosition(lat, lon));
+    public void showEntities(Collection<MapEntity> entities) {
+        waypoints.clear();
+        for (MapEntity e : entities) {
+            waypoints.add(new DefaultWaypoint(e.getPosition()));
+        }
     }
 
     public void drawRoute(List<GeoPosition> route) {
