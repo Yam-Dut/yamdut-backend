@@ -34,7 +34,7 @@ public class RoutePainter implements Painter<JXMapViewer> {
             Point2D worldPt =
                     map.getTileFactory().geoToPixel(gp, map.getZoom());
 
-            Point2D screenPt = new Point2D.Double(
+            Point2D screen = new Point2D.Double(
                     worldPt.getX() - viewport.getX(),
                     worldPt.getY() - viewport.getY()
             );
@@ -43,11 +43,11 @@ public class RoutePainter implements Painter<JXMapViewer> {
                 g.drawLine(
                         (int) lastPoint.getX(),
                         (int) lastPoint.getY(),
-                        (int) screenPt.getX(),
-                        (int) screenPt.getY()
+                        (int) screen.getX(),
+                        (int) screen.getY()
                 );
             }
-            lastPoint = screenPt;
+            lastPoint = screen;
         }
         g.dispose();
     }
