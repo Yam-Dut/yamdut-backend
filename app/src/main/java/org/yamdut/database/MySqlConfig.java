@@ -6,14 +6,14 @@ import java.sql.*;
 
 public class MySqlConfig {
     // for linux/mariadb (amrxtgh69)
-    private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
-    private static final String USER = "yamdut";
-    private static final String PASSWORD = "//your password here";
+    // private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
+    // private static final String USER = "yamdut";
+    // private static final String PASSWORD = "//your password here";
 
     //for windows 
-    // private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db";
-    // private static final String USER = "your username here";
-    // private static final String PASSWORD = "your password here";
+    private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db";
+    private static final String USER = "root";
+    private static final String PASSWORD = "@Abhi1004";
 
     static {
         try {
