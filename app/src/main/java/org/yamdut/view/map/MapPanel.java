@@ -104,18 +104,12 @@ public class MapPanel extends JPanel {
                 return;
             }
             GeoPosition pos = route.get(routeIndex++);
-            updateWaypoint(pos);
+            waypoints.clear();
+            waypoints.add(new DefaultWaypoint(pos));
             mapViewer.setAddressLocation(pos);
+            mapViewer.repaint();
         });
 
         simulationTimer.start();
-    }
-
-    //internals
-    private void updateWaypoint(GeoPosition pos) {
-        waypoints.clear();
-        waypoints.add(new DefaultWaypoint(pos));
-        waypointPainter.setWaypoints(waypoints);
-        mapViewer.repaint();
     }
 }
