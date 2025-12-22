@@ -14,31 +14,25 @@ repositories {
 
 ext {
     javafxVersion = '21.0.2'
-    os = org.gradle.internal.os.OperatingSystem.current()
+}
+
+def os = org.gradle.internal.os.OperatingSystem.current()
+def classifier = ""
+if (os.isWindows()) {
+    classifier = "win"
+} else if (os.isMacOsX()) {
+    classifier = "mac"
+} else if (os.isLinux()) {
+    classifier = "linux"
 }
 
 dependencies {
-
-    /* 
-       JavaFX (auto OS detect)
-        */
-    if (os.isLinux()) {
-        implementation "org.openjfx:javafx-controls:${javafxVersion}:linux"
-        implementation "org.openjfx:javafx-graphics:${javafxVersion}:linux"
-        implementation "org.openjfx:javafx-web:${javafxVersion}:linux"
-    } else if (os.isWindows()) {
-        implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
-        implementation "org.openjfx:javafx-graphics:${javafxVersion}:win"
-        implementation "org.openjfx:javafx-web:${javafxVersion}:win"
-    } else {
-        throw new GradleException("Unsupported OS for JavaFX")
-    }
-
-    /* 
-       Swing Map Viewer
-        */
-    implementation 'org.jxmapviewer:jxmapviewer2:2.8'
-
+    implementation "org.openjfx:javafx-base:$javaFxVersion:$classifier"
+    implementation "org.openjfx:javafx-controls:$javaFxVersion:$classifier"
+    implementation "org.openjfx:javafx-graphics:$javaFxVersion:$classifier"
+    implementation "org.openjfx:javafx-web:$javaFxVersion:$classifier"
+    implementation "org.openjfx:javafx-swing:$javaFxVersion:$classifier" 
+}
     /* 
        Jakarta Mail
         */
@@ -54,7 +48,7 @@ dependencies {
        Testing
         */
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
-}
+
 
 application {
     mainClass = 'org.yamdut.App'
