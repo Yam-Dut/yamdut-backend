@@ -61,6 +61,11 @@ public class RideSimulationService {
         }, 0, 100);
     }
 
+    public void stopRide() {
+        if (timer != null) timer.cancel();
+        mapPanel.stopSimulation();
+    }
+
     private String toJson(List<GeoPosition> route) {
         StringBuilder sb = new StringBuilder("[");
         for (GeoPosition gp: route) {
