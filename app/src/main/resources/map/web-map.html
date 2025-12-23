@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Yamdut Map</title>
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    #status {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.9);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<div id="status">Loading map…</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  let map;
+  let pickupMarker, dropoffMarker, routeLine;
+
+  function initMap() {
+    const kathmandu = [27.7172, 85.3240];
+    map = L.map('map').setView(kathmandu, 12);
+
+    // OSM tiles over HTTPS
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    document.getElementById('status').innerText = 'Centered on Kathmandu';
+
+    // Notify Java when map is clicked (if bridge is present)
+    map.on('click', (e) => {
+      if (window.javaBridge && typeof window.javaBridge.onMapClick === 'function') {
+        window.javaBridge.onMapClick(e.latlng.lat, e.latlng.lng);
+      }
+    });
+  }
+
+  // Called from Java to re-center
+  function setCenter(lat, lng, zoom) {
+    if (!map) return;
+    map.setView([lat, lng], zoom || 12);
+  }
+
+  // Called from Java to draw/update route
+  async function setRoute(fromLat, fromLng, toLat, toLng) {
+    if (!map) return;
+
+    const from = [fromLat, fromLng];
+    const to = [toLat, toLng];
+
+    if (pickupMarker) pickupMarker.remove();
+    if (dropoffMarker) dropoffMarker.remove();
+    if (routeLine) routeLine.remove();
+
+    pickupMarker = L.marker(from).addTo(map).bindPopup('Pickup');
+    dropoffMarker = L.marker(to).addTo(map).bindPopup('Dropoff');
+
+    document.getElementById('status').innerText = 'Calculating route…';
+
+    try {
+      const url =
+        `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+
+      if (!data.routes || !data.routes.length) {
+        document.getElementById('status').innerText = 'No route found.';
+        return;
+      }
+
+      const coords = data.routes[0].geometry.coordinates; // [lon, lat]
+      const latlngs = coords.map(c => [c[1], c[0]]);
+      routeLine = L.polyline(latlngs, {color: 'blue', weight: 4}).addTo(map);
+      map.fitBounds(routeLine.getBounds(), {padding: [30, 30]});
+      document.getElementById('status').innerText = 'Route displayed';
+    } catch (e) {
+      console.error(e);
+      document.getElementById('status').innerText = 'Failed to load route';
+    }
+  }
+
+  // Called from Java to clear markers/route
+  function clearRoute() {
+    if (!map) return;
+    if (pickupMarker) pickupMarker.remove();
+    if (dropoffMarker) dropoffMarker.remove();
+    if (routeLine) routeLine.remove();
+    document.getElementById('status').innerText = 'Route cleared';
+  }
+
+  document.addEventListener('DOMContentLoaded', initMap);
+</script>
+</body>
+</html>

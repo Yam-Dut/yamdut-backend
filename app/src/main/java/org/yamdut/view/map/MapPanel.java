@@ -1,77 +1,119 @@
 package org.yamdut.view.map;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Scene;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import netscape.javascript.JSObject;
+
 import javax.swing.*;
 import java.awt.*;
-import java.net.URI;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Reusable map component backed by JavaFX WebView + Leaflet (web-map.html).
+ * - Loads OSM tiles over HTTPS
+ * - Supports pan/zoom
+ * - Exposes setRoute(...) for Java -> JS
+ */
 public class MapPanel extends JPanel {
-    private JButton openMapButton;
+
+    private final AtomicBoolean fxSceneInitialized = new AtomicBoolean(false);
+
+    private final JFXPanel fxPanel = new JFXPanel();
+    private WebEngine webEngine;
+    private MapClickListener mapClickListener;
 
     public MapPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(240, 242, 245));
+        setOpaque(true);
+        setBackground(Color.WHITE);
+        setPreferredSize(new Dimension(900, 600));
+        add(fxPanel, BorderLayout.CENTER);
 
-        JPanel placeholderPanel = new JPanel(new GridBagLayout());
-        placeholderPanel.setBackground(new Color(240, 242, 245));
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.insets = new Insets(10, 0, 10, 0);
-
-        JLabel mapIcon = new JLabel("🗺️");
-        mapIcon.setFont(new Font("Segoe UI", Font.PLAIN, 48));
-        gbc.insets = new Insets(0, 0, 20, 0);
-        placeholderPanel.add(mapIcon, gbc);
-
-        JLabel titleLabel = new JLabel("Interactive Map");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(52, 73, 94));
-        gbc.insets = new Insets(0, 0, 10, 0);
-        placeholderPanel.add(titleLabel, gbc);
-
-        JLabel descLabel = new JLabel("Live tracking and 3D map view (coming soon)");
-        descLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        descLabel.setForeground(new Color(127, 140, 141));
-        placeholderPanel.add(descLabel, gbc);
-
-        openMapButton = new JButton("Open Map in Browser");
-        openMapButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        openMapButton.setBackground(new Color(52, 152, 219));
-        openMapButton.setForeground(Color.WHITE);
-        openMapButton.setFocusPainted(false);
-        openMapButton.setBorderPainted(false);
-        openMapButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        openMapButton.setPreferredSize(new Dimension(220, 40));
-        gbc.insets = new Insets(30, 0, 0, 0);
-        placeholderPanel.add(openMapButton, gbc);
-
-        add(placeholderPanel, BorderLayout.CENTER);
-
-        openMapButton.addActionListener(e -> openWebPage("https://www.google.com/maps"));
+        // JFXPanel ensures toolkit is started; just schedule scene setup once
+        Platform.runLater(() -> {
+            if (fxSceneInitialized.compareAndSet(false, true)) {
+                Platform.setImplicitExit(false);
+                initFxScene();
+            }
+        });
     }
 
-    private void openWebPage(String url) {
-        try {
-            if (Desktop.isDesktopSupported()
-                    && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Please visit: " + url,
-                        "Open in Browser",
-                        JOptionPane.INFORMATION_MESSAGE);
+    private void initFxScene() {
+        WebView webView = new WebView();
+        webEngine = webView.getEngine();
+
+        URL url = getClass().getResource("/map/web-map.html");
+        if (url != null) {
+            System.out.println("MapPanel: loading " + url);
+            webEngine.load(url.toExternalForm());
+        } else {
+            System.out.println("MapPanel: web-map.html not found on classpath");
+            webEngine.loadContent("<html><body><h3>web-map.html not found</h3></body></html>");
+        }
+
+        webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            System.out.println("MapPanel load state: " + newState);
+        });
+
+        // Optional bridge: JS can call window.javaBridge.*
+        JSObject window = (JSObject) webEngine.executeScript("window");
+        window.setMember("javaBridge", new JavaBridge());
+
+        fxPanel.setScene(new Scene(webView));
+    }
+
+    /** Center the map from Java (used e.g. for Kathmandu default). */
+    public void setCenter(double lat, double lng, int zoom) {
+        if (webEngine == null) return;
+        Platform.runLater(() -> {
+            String script = String.format("setCenter(%f,%f,%d);", lat, lng, zoom);
+            webEngine.executeScript(script);
+        });
+    }
+
+    /** Draw/update a route polyline between origin & destination. */
+    public void setRoute(double fromLat, double fromLng,
+                         double toLat, double toLng) {
+        if (webEngine == null) return;
+        Platform.runLater(() -> {
+            String script = String.format(
+                    "setRoute(%f,%f,%f,%f);",
+                    fromLat, fromLng, toLat, toLng
+            );
+            webEngine.executeScript(script);
+        });
+    }
+
+    /** Clear markers/route from the web map. */
+    public void clearRoute() {
+        if (webEngine == null) return;
+        Platform.runLater(() -> webEngine.executeScript("clearRoute();"));
+    }
+
+    /** Listen for map clicks coming from JS (Leaflet). */
+    public void setMapClickListener(MapClickListener listener) {
+        this.mapClickListener = listener;
+    }
+
+    public interface MapClickListener {
+        void onMapClick(double lat, double lng);
+    }
+
+    /** Example Java <-> JS bridge (extend as needed). */
+    public class JavaBridge {
+        // Called from JS: window.javaBridge.log('msg')
+        public void log(String msg) {
+            System.out.println("JS: " + msg);
+        }
+
+        public void onMapClick(double lat, double lng) {
+            if (mapClickListener != null) {
+                SwingUtilities.invokeLater(() -> mapClickListener.onMapClick(lat, lng));
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Could not open browser. Please visit: " + url,
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
         }
     }
-
-    public JButton getOpenMapButton() {
-        return openMapButton;
-    }
 }
-
-
