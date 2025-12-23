@@ -5,24 +5,16 @@ import java.sql.DriverManager;
 import java.sql.*;
 
 public class MySqlConfig {
-    // for linux/mariadb (amrxtgh69)
-    private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
-    private static final String USER = "yamdut";
-    private static final String PASSWORD = "//your password here";
-
-    //for windows 
-    // private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db";
-    // private static final String USER = "your username here";
-    // private static final String PASSWORD = "your password here";
+    // MySQL connection configuration (no SSL)
+    private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db?useSSL=false&allowPublicKeyRetrieval=true";
+    private static final String USER = "root";
+    private static final String PASSWORD = "password";
 
     static {
         try {
-            // for linux
-            Class.forName("org.mariadb.jdbc.Driver");
-            //for windows
-            //Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Mariadb driver not found", e);
+            throw new RuntimeException("MySQL driver not found", e);
         }
     }
     /*
@@ -33,4 +25,5 @@ public class MySqlConfig {
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
+    
 }

@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 import org.yamdut.utils.Theme;
+import org.yamdut.view.map.MapPanel;
 
 public class DriverDashboard extends BaseDashboard {
     private JButton goOnlineButton;
@@ -11,6 +12,7 @@ public class DriverDashboard extends BaseDashboard {
     private JButton earningsButton;
     private JLabel statusLabel;
     private boolean isOnline = false;
+    private MapPanel mapPanel;
 
     public DriverDashboard() {
         super();
@@ -20,9 +22,16 @@ public class DriverDashboard extends BaseDashboard {
 
     @Override
     protected void initContent() {
+        setLayout(new BorderLayout());
+
+        // Map on top (show current/assigned trip)
+        mapPanel = new MapPanel();
+        mapPanel.setPreferredSize(new Dimension(800, 360));
+        add(mapPanel, BorderLayout.CENTER);
+
         JPanel contentPanel = new JPanel(new GridBagLayout());
         contentPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 30, 30));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -80,7 +89,7 @@ public class DriverDashboard extends BaseDashboard {
 
         contentPanel.add(statsPanel, gbc);
 
-        add(contentPanel, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.SOUTH);
     }
 
     private JButton createDashboardButton(String text, Color color) {
@@ -146,6 +155,10 @@ public class DriverDashboard extends BaseDashboard {
 
     public boolean isOnline() {
         return isOnline;
+    }
+
+    public void showTripOnMap(double pickupLat, double pickupLng, double dropLat, double dropLng) {
+        mapPanel.setRoute(pickupLat, pickupLng, dropLat, dropLng);
     }
 }
 

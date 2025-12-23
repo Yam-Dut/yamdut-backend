@@ -24,11 +24,19 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
 
-    // JavaFX for embedded 3D map viewer (Linux classifier for your environment)
+    // JavaFX for embedded WebView map (select classifier per OS)
     val javaFxVersion = "21.0.2"
-    implementation("org.openjfx:javafx-controls:$javaFxVersion:linux")
-    implementation("org.openjfx:javafx-graphics:$javaFxVersion:linux")
-    implementation("org.openjfx:javafx-web:$javaFxVersion:linux")
+    val osName = System.getProperty("os.name").lowercase()
+    val platform = when {
+        osName.contains("win") -> "win"
+        osName.contains("mac") -> "mac"
+        else -> "linux"
+    }
+    implementation("org.openjfx:javafx-base:$javaFxVersion:$platform")
+    implementation("org.openjfx:javafx-controls:$javaFxVersion:$platform")
+    implementation("org.openjfx:javafx-graphics:$javaFxVersion:$platform")
+    implementation("org.openjfx:javafx-web:$javaFxVersion:$platform")
+    implementation("org.openjfx:javafx-swing:$javaFxVersion:$platform")
     implementation("com.sun.mail:jakarta.mail:2.0.1")
 }
 

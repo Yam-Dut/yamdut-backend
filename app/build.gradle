@@ -10,6 +10,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 ext {
@@ -23,19 +24,32 @@ dependencies {
        JavaFX (auto OS detect)
         */
     if (os.isLinux()) {
+        implementation "org.openjfx:javafx-base:${javafxVersion}:linux"
         implementation "org.openjfx:javafx-controls:${javafxVersion}:linux"
         implementation "org.openjfx:javafx-graphics:${javafxVersion}:linux"
         implementation "org.openjfx:javafx-web:${javafxVersion}:linux"
+        implementation "org.openjfx:javafx-media:${javafxVersion}:linux"
+        implementation "org.openjfx:javafx-swing:${javafxVersion}:linux"
     } else if (os.isWindows()) {
+        implementation "org.openjfx:javafx-base:${javafxVersion}:win"
         implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
         implementation "org.openjfx:javafx-graphics:${javafxVersion}:win"
         implementation "org.openjfx:javafx-web:${javafxVersion}:win"
+        implementation "org.openjfx:javafx-media:${javafxVersion}:win"
+        implementation "org.openjfx:javafx-swing:${javafxVersion}:win"
+    } else if (os.isMacOsX()) {
+        implementation "org.openjfx:javafx-base:${javafxVersion}:mac"
+        implementation "org.openjfx:javafx-controls:${javafxVersion}:mac"
+        implementation "org.openjfx:javafx-graphics:${javafxVersion}:mac"
+        implementation "org.openjfx:javafx-web:${javafxVersion}:mac"
+        implementation "org.openjfx:javafx-media:${javafxVersion}:mac"
+        implementation "org.openjfx:javafx-swing:${javafxVersion}:mac"
     } else {
-        throw new GradleException("Unsupported OS for JavaFX")
+        throw new RuntimeException("Unsupported OS for JavaFX")
     }
 
     /* 
-       Swing Map Viewer
+       Swing Map Viewer (legacy; kept for compatibility)
         */
     implementation 'org.jxmapviewer:jxmapviewer2:2.6'
 
@@ -43,6 +57,12 @@ dependencies {
        Jakarta Mail
         */
     implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+        /*
+       HTTP Client (OkHttp) + JSON (Gson)
+     */
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     /* 
        DB + Env
