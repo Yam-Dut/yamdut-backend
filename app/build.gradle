@@ -27,6 +27,8 @@ dependencies {
     implementation "org.openjfx:javafx-web:$javafxVersion:$classifier"
     implementation "org.openjfx:javafx-swing:$javafxVersion:$classifier" 
 
+    implementation "org.jxmapviewer:jxmapviewer2:2.8"
+
     /* 
        Jakarta Mail
         */
@@ -37,7 +39,6 @@ dependencies {
        HTTP Client (OkHttp) + JSON (Gson)
      */
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'com.google.code.gson:gson:2.10.1'
 
     /* 
        DB + Env
@@ -46,6 +47,8 @@ dependencies {
     implementation 'com.mysql:mysql-connector-j:8.0.33'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
+    //add org.json
+    implementation "org.json:json:20240303"
     /* 
        Testing
         */
