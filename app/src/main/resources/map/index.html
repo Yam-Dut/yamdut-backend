@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yamdut - Live Ride Map</title>
+    
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-map-marked-alt"></i>
+                <h1>Yamdut Live Map</h1>
+            </div>
+            <div class="controls">
+                <button id="btnZoomIn" class="control-btn" title="Zoom In">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button id="btnZoomOut" class="control-btn" title="Zoom Out">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button id="btnLocateMe" class="control-btn" title="My Location">
+                    <i class="fas fa-location-crosshairs"></i>
+                </button>
+                <button id="btnRefresh" class="control-btn" title="Refresh Map">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-users"></i> Active Entities</h3>
+                    <div id="entityList" class="entity-list">
+                        <!-- Entities will be populated here -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Area -->
+            <section class="map-area">
+                <div id="map"></div>
+                <div class="map-overlay">
+                    <div class="status-bar" id="statusBar">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Ready</span>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color driver"></div>
+                            <span>Driver</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color passenger"></div>
+                            <span>Passenger</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color pickup"></div>
+                            <span>Pickup</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color destination"></div>
+                            <span>Destination</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Info Panel -->
+            <aside class="info-panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-info-circle"></i> Details</h3>
+                    <button id="btnClosePanel" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div class="entity-info" id="entityInfo">
+                        <div class="entity-icon">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <div class="entity-details">
+                            <h4 id="entityName">No Selection</h4>
+                            <div class="detail-row">
+                                <span class="label">Type:</span>
+                                <span class="value" id="entityType">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Status:</span>
+                                <span class="value" id="entityStatus">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Location:</span>
+                                <span class="value" id="entityLocation">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">ETA:</span>
+                                <span class="value" id="entityEta">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="route-info" id="routeInfo">
+                        <h4><i class="fas fa-route"></i> Route Details</h4>
+                        <div class="detail-row">
+                            <span class="label">Distance:</span>
+                            <span class="value" id="routeDistance">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Duration:</span>
+                            <span class="value" id="routeDuration">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Points:</span>
+                            <span class="value" id="routePoints">-</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p>Loading Map...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="map.js"></script>
+</body>
+</html>
