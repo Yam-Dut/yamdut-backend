@@ -2,10 +2,7 @@ package org.yamdut.utils;
 
 import org.yamdut.model.*;
 
-/**
- * Simple singleton to keep track of the currently logged-in user
- * on the desktop client side.
- */
+
 public class UserSession {
     private static UserSession instance;
     private User currentUser;
