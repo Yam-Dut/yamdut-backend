@@ -10,6 +10,7 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 ext {
@@ -32,10 +33,17 @@ dependencies {
     implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
 
 
+        /*
+       HTTP Client (OkHttp) + JSON (Gson)
+     */
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
     /* 
        DB + Env
         */
-    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
+    //implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
+    implementation 'com.mysql:mysql-connector-j:8.0.33'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
     /* 

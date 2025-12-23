@@ -32,6 +32,8 @@ public class UserDAOImpl implements UserDAO {
             if (rs.next()) {
                 user.setId(rs.getLong(1));
             }
+        } catch (SQLIntegrityConstraintViolationException dup) {
+            throw new IllegalStateException("Account with this email already exists.", dup);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save user", e);
         }
@@ -52,13 +54,14 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean existsByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ? AND VERIFIED = TRUE";
+        // Check regardless of verification status to avoid duplicates
+        String sql = "SELECT 1 FROM users WHERE email = ?";
 
         try (Connection conn = MySqlConfig.getConnection();
-    PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, email);
             ResultSet rs = ps.executeQuery();
-            return rs.next();        
+            return rs.next();
         } catch (Exception e) {
             throw new RuntimeException("Failed to check email existence", e);
         }
@@ -88,8 +91,101 @@ public class UserDAOImpl implements UserDAO {
         user.setUsername(rs.getString("username"));
         user.setRole(Role.valueOf(rs.getString("role")));
         user.setPasswordHash(rs.getString("password_hash"));
-        user.setVerified(rs.getBoolean("verified"));
-        user.setCreatedAt(rs.getTimestamp("created_at"));
+        
+        // Handle verified column if it exists, otherwise default to false
+        try {
+            user.setVerified(rs.getBoolean("verified"));
+        } catch (SQLException e) {
+            // Column doesn't exist, default to false
+            user.setVerified(false);
+        }
+        
+        // Handle created_at column if it exists
+        try {
+            user.setCreatedAt(rs.getTimestamp("created_at"));
+        } catch (SQLException e) {
+            // Column doesn't exist, leave as null
+            user.setCreatedAt(null);
+        }
+        
         return user;
+    }
+    
+    @Override
+    public java.util.List<User> getAllUsers() {
+        java.util.List<User> users = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM users ORDER BY id";
+        
+        try (Connection conn = MySqlConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                users.add(mapUser(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch all users", e);
+        }
+        return users;
+    }
+    
+    @Override
+    public boolean createUser(User user) {
+        try {
+            save(user);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    @Override
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        
+        try (Connection conn = MySqlConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapUser(rs);
+            }
+            return null;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch user by ID", e);
+        }
+    }
+    
+    @Override
+    public boolean updateUser(User user) {
+        String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, username = ?, role = ? WHERE id = ?";
+        
+        try (Connection conn = MySqlConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFullName());
+            ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPhone());
+            ps.setString(4, user.getUsername());
+            ps.setString(5, user.getRole().name());
+            ps.setLong(6, user.getId());
+            
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update user", e);
+        }
+    }
+    
+    @Override
+    public boolean deleteUser(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        
+        try (Connection conn = MySqlConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            int rows = ps.executeUpdate();
+            return rows > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete user", e);
+        }
     }
 } 

@@ -27,10 +27,11 @@ public class MySqlConfig {
             //Class.forName("com.mysql.cj.jdbc.Driver");
         
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Mariadb driver not found", e);
+            throw new RuntimeException("MySQL driver not found", e);
         }
     }
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
+    
 }
