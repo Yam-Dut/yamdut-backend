@@ -10,8 +10,8 @@ public class MySqlConfig {
 
     /*
     i have add mariadb for myself u do yourself 
-     */
-    
+    */
+
     private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
     private static final String USER = "your user name";
     private static final String PASSWORD = "your password here boss";
