@@ -1,36 +1,42 @@
 package org.yamdut.database;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.*;
+import java.sql.SQLException;
 
 public class MySqlConfig {
-    // for linux/mariadb (amrxtgh69)
-    // private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
-    // private static final String USER = "yamdut";
-    // private static final String PASSWORD = "//your password here";
 
-    //for windows 
-    private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db";
-    private static final String USER = "root";
-    private static final String PASSWORD = "@Abhi1004";
+    private static final Dotenv dotenv = Dotenv.configure()
+            .ignoreIfMalformed()
+            .ignoreIfMissing()
+            .load();
+
+    private static final String HOST = envOrDefault("DB_HOST", "localhost");
+    private static final String PORT = envOrDefault("DB_PORT", "3306");
+    private static final String NAME = envOrDefault("DB_NAME", "yamdut_db");
+    private static final String USER = envOrDefault("DB_USER", "root");
+    private static final String PASSWORD = envOrDefault("DB_PASSWORD", "");
+
+    private static final String URL = String.format(
+            "jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC",
+            HOST, PORT, NAME
+    );
 
     static {
         try {
-            // for linux
-            Class.forName("org.mariadb.jdbc.Driver");
-            //for windows
-            //Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Mariadb driver not found", e);
+            throw new RuntimeException("MySQL driver not found. Ensure mysql-connector-j is on the classpath.", e);
         }
     }
-    /*
-    ===========================================================================
-    Get connection
-    ===========================================================================
-     */
+
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    private static String envOrDefault(String key, String def) {
+        String v = dotenv.get(key);
+        return (v == null || v.isBlank()) ? def : v;
     }
 }
