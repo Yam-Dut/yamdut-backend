@@ -1,81 +1,96 @@
 package org.yamdut;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
+// import org.yamdut.controller.AdminDashboardController;
+import org.yamdut.controller.DriverDashboardController;
+import org.yamdut.controller.LoginController;
+import org.yamdut.controller.PassengerDashboardController;
+import org.yamdut.controller.SignupController;
 import org.yamdut.core.ScreenManager;
+import org.yamdut.model.Role;
 import org.yamdut.utils.UserSession;
 import org.yamdut.view.dashboard.AdminDashboard;
 import org.yamdut.view.dashboard.DriverDashboard;
 import org.yamdut.view.dashboard.PassengerDashboard;
 import org.yamdut.view.login.LoginScreen;
-import org.yamdut.view.map.MapPanel;
 import org.yamdut.view.signup.SignUpScreen;
-import org.yamdut.controller.LoginController;
-import org.yamdut.controller.SignupController;
-
-
 
 public class App {
 
     public static void main(String[] args) {
+
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Yamdut");
-            frame.setSize(1080, 1080);
+
+            // ───────────────────────── Frame ─────────────────────────
+            JFrame frame = new JFrame("Yamdut - Ride Sharing");
+            frame.setSize(1200, 800);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setLocationRelativeTo(null);
 
             ScreenManager screenManager = new ScreenManager(frame);
 
-            // Create screens without controllers first
-            LoginScreen loginScreen = new LoginScreen(null);
-            SignUpScreen signupScreen = new SignUpScreen(null);
+            // ───────────────────────── AUTH: LOGIN ─────────────────────────
+            LoginScreen loginScreenTemp = new LoginScreen(null);
+            LoginController loginController =
+                    new LoginController(loginScreenTemp, screenManager);
 
-            // Create controllers, wiring in ScreenManager
-            LoginController loginController = new LoginController(loginScreen, screenManager);
-            SignupController signupController = new SignupController(signupScreen, screenManager);
+            LoginScreen loginScreen = new LoginScreen(loginController);
 
-            // Let screens know about their controllers
-            loginScreen = new LoginScreen(loginController);
-            signupScreen = new SignUpScreen(signupController);
+            // ───────────────────────── AUTH: SIGNUP ─────────────────────────
+            SignUpScreen signUpScreenTemp = new SignUpScreen(null);
+            SignupController signupController =
+                    new SignupController(signUpScreenTemp, screenManager);
 
+            SignUpScreen signUpScreen = new SignUpScreen(signupController);
 
+            // ───────────────────────── REGISTER SCREENS ─────────────────────────
             screenManager.register("LOGIN", loginScreen);
-            screenManager.register("SIGNUP", signupScreen);
+            screenManager.register("SIGNUP", signUpScreen);
+            screenManager.register("OTP", new JPanel()); // placeholder
 
-            // Dashboards for different roles
+            // ───────────────────────── DASHBOARDS ─────────────────────────
             PassengerDashboard passengerDashboard = new PassengerDashboard();
             DriverDashboard driverDashboard = new DriverDashboard();
             AdminDashboard adminDashboard = new AdminDashboard();
+
+            new PassengerDashboardController(passengerDashboard);
+            new DriverDashboardController(driverDashboard);
+            // new AdminDashboardController(adminDashboard);
 
             screenManager.register("PASSENGER_DASHBOARD", passengerDashboard);
             screenManager.register("DRIVER_DASHBOARD", driverDashboard);
             screenManager.register("ADMIN_DASHBOARD", adminDashboard);
 
-            // Wire logout buttons to clear session and go back to login
+            // ───────────────────────── LOGOUT HANDLING ─────────────────────────
             passengerDashboard.getLogoutButton().addActionListener(e -> {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
             });
+
             driverDashboard.getLogoutButton().addActionListener(e -> {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
             });
+
             adminDashboard.getLogoutButton().addActionListener(e -> {
                 UserSession.getInstance().logout();
                 screenManager.show("LOGIN");
             });
 
-            // Passenger map button opens a simple map dialog (Swing)
-            passengerDashboard.getShowMapButton().addActionListener(e -> {
-                JDialog mapDialog = new JDialog(frame, "Yamdut - Map", true);
-                mapDialog.setSize(900, 600);
-                mapDialog.setLocationRelativeTo(frame);
-                mapDialog.add(new MapPanel());
-                mapDialog.setVisible(true);
-            });
+            // ───────────────────────── INITIAL ROUTING ─────────────────────────
+            if (UserSession.getInstance().isLoggedIn()) {
+                Role role = UserSession.getInstance()
+                        .getCurrentUser()
+                        .getRole();
+                screenManager.showDashBoardForRole(role);
+            } else {
+                screenManager.show("LOGIN");
+            }
 
-            screenManager.show("LOGIN");
             frame.setVisible(true);
-            //preeti-patch
         });
     }
 }

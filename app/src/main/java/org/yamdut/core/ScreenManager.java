@@ -1,12 +1,22 @@
 package org.yamdut.core;
 
 
-import org.yamdut.model.*;
-import org.yamdut.view.signup.*;
-
-import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import org.yamdut.controller.DriverDashboardController;
+import org.yamdut.controller.PassengerDashboardController;
+// import org.yamdut.controller.AdminDashboardController;
+
+import org.yamdut.model.Role;
+import org.yamdut.model.User;
+import org.yamdut.view.dashboard.AdminDashboard;
+import org.yamdut.view.dashboard.DriverDashboard;
+import org.yamdut.view.dashboard.PassengerDashboard;
+import org.yamdut.view.signup.OtpScreen;
 
 public class ScreenManager {
     private final JFrame frame;
@@ -31,12 +41,32 @@ public class ScreenManager {
     }
 
     //centralized role based navigation
+
     public void showDashBoardForRole(Role role) {
         switch (role) {
-            case PASSENGER -> show("PASSENGER_DASHBOARD");
-            case DRIVER -> show("DRIVER_DASHBOARD");
-            case ADMIN -> show("ADMIN_DASHBOARD");
-            default -> throw new IllegalStateException("Unknow role: " + role);
+            case PASSENGER:
+                PassengerDashboard passengerDashboard = new PassengerDashboard();
+                new PassengerDashboardController(passengerDashboard); // controller instance
+                this.register("PASSENGER_DASHBOARD", passengerDashboard);
+                this.show("PASSENGER_DASHBOARD");
+                break;
+
+            case DRIVER:
+                DriverDashboard driverDashboard = new DriverDashboard();
+                new DriverDashboardController(driverDashboard);
+                this.register("DRIVER_DASHBOARD", driverDashboard);
+                this.show("DRIVER_DASHBOARD");
+                break;
+
+            case ADMIN:
+                AdminDashboard adminDashboard = new AdminDashboard();
+                // AdminDashboardController adminController = new AdminDashboardController(adminDashboard);
+                this.register("ADMIN_DASHBOARD", adminDashboard);
+                this.show("ADMIN_DASHBOARD");
+                break;
+
+            default:
+                throw new IllegalStateException("Unknown role: " + role);
         }
     }
     public void showOtpScreen(User user, boolean isSignup) {

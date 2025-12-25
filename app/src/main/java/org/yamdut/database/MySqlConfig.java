@@ -5,23 +5,31 @@ import java.sql.DriverManager;
 import java.sql.*;
 
 public class MySqlConfig {
-    // MySQL connection configuration (no SSL)
-    private static final String URL = "jdbc:mysql://localhost:3306/yamdut_db?useSSL=false&allowPublicKeyRetrieval=true";
-    private static final String USER = "root";
-    private static final String PASSWORD = "password";
+   
+    // for linux/mariadb (amrxtgh69)
+
+    /*
+    i have add mariadb for myself u do yourself 
+    */
+
+    private static final String URL = "jdbc:mariadb://localhost:3306/yamdut_db";
+    private static final String USER = "your user name";
+    private static final String PASSWORD = "your password here boss";
 
     static {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            // for linux
+           
+            Class.forName("org.mariadb.jdbc.Driver");
+           
+            /*  for windows uncomment the line below */
+           
+            //Class.forName("com.mysql.cj.jdbc.Driver");
+        
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("MySQL driver not found", e);
         }
     }
-    /*
-    ===========================================================================
-    Get connection
-    ===========================================================================
-     */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
