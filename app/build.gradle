@@ -34,6 +34,8 @@ dependencies {
         */
     implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
 
+    implementation 'org.eclipse.angus:angus-mail:2.0.2'
+
 
         /*
        HTTP Client (OkHttp) + JSON (Gson)
@@ -43,8 +45,8 @@ dependencies {
     /* 
        DB + Env
         */
-    //implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
-    implementation 'com.mysql:mysql-connector-j:8.0.33'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
+    // implementation 'com.mysql:mysql-connector-j:8.0.33'
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
     //add org.json
