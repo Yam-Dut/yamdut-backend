@@ -1,12 +1,14 @@
 package org.yamdut.service;
 
+import java.util.List;
 
-import org.jxmapviewer.viewer.*;
+import javax.swing.Timer;
+
+import org.jxmapviewer.viewer.GeoPosition;
 import org.yamdut.view.map.MapPanel;
 
-import java.util.*;
-
 public class RideSimulationService {
+
     private final MapPanel mapPanel;
     private final MapService mapService;
 
@@ -15,63 +17,74 @@ public class RideSimulationService {
     private Timer timer;
 
     public RideSimulationService(MapPanel mapPanel, MapService mapService) {
-        this.mapPanel =  mapPanel;
+        this.mapPanel = mapPanel;
         this.mapService = mapService;
     }
 
-    public void startRide(GeoPosition driver, GeoPosition passenger, GeoPosition destination) {
-        //fetch route of diver to pickup
-
-        currentRoute = mapService.fetchRoute(List.of(driver, passenger));
-        routeIndex = 0;
-        mapPanel.drawRoute(toJson(currentRoute));
-
-        startSimulation(() -> {
-            //After driver reaches to passenger fetch pickup -> destination
-            currentRoute = mapService.fetchRoute(List.of(passenger, destination));
-            routeIndex = 0;
-            mapPanel.drawRoute(toJson(currentRoute));
-            startSimulation(null);
+    // Entry point
+    public void startRide(
+            GeoPosition driver,
+            GeoPosition passenger,
+            GeoPosition destination
+    ) {
+        // Phase 1: driver → passenger
+        startRoute(driver, passenger, () -> {
+            // Phase 2: passenger → destination
+            startRoute(passenger, destination, null);
         });
     }
 
-    public void startSimulation(Runnable onComplete) {
-        if (currentRoute == null || currentRoute.size() < 2) {
-            return;
-        }
-        if (timer != null) {
-            timer.cancel();
-        }
-        timer = new Timer(true);
+    private void startRoute(
+            GeoPosition from,
+            GeoPosition to,
+            Runnable onComplete
+    ) {
+        currentRoute = mapService.fetchRoute(List.of(from, to));
+        routeIndex = 0;
 
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (routeIndex >= currentRoute.size()) {
-                    timer.cancel();
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
-                    return;
-                }
-            
-            GeoPosition pos = currentRoute.get(routeIndex++);
-            mapPanel.updateEntityPosition("driver1", pos.getLatitude(), pos.getLongitude());
+        mapPanel.drawRoute(toJson(currentRoute));
+        startAnimation(onComplete);
+    }
+
+    private void startAnimation(Runnable onComplete) {
+        stopRide();
+
+        timer = new Timer(100, e -> {
+            if (routeIndex >= currentRoute.size()) {
+                stopRide();
+                if (onComplete != null) onComplete.run();
+                return;
             }
-        }, 0, 100);
+
+            GeoPosition pos = currentRoute.get(routeIndex++);
+            mapPanel.updateEntityPosition(
+                    "driver1",
+                    pos.getLatitude(),
+                    pos.getLongitude()
+            );
+        });
+
+        timer.start();
     }
 
     public void stopRide() {
-        if (timer != null) timer.cancel();
+        if (timer != null) {
+            timer.stop();
+            timer = null;
+        }
         mapPanel.stopSimulation();
     }
 
     private String toJson(List<GeoPosition> route) {
         StringBuilder sb = new StringBuilder("[");
-        for (GeoPosition gp: route) {
-            sb.append(String.format("{lat:%f, lon:%f},", gp.getLatitude(), gp.getLongitude()));
+        for (GeoPosition gp : route) {
+            sb.append(String.format(
+                    "{\"lat\":%f,\"lon\":%f},",
+                    gp.getLatitude(),
+                    gp.getLongitude()
+            ));
         }
-        if (sb.length() > 1) sb.setLength(sb.length() - 1); 
+        if (sb.length() > 1) sb.setLength(sb.length() - 1);
         sb.append("]");
         return sb.toString();
     }
