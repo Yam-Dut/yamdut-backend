@@ -31,6 +31,7 @@ public class LoginScreen extends JPanel {
         initUI();
         applyTheme();
         setupListeners();
+
     }
 
     private void initUI() {
