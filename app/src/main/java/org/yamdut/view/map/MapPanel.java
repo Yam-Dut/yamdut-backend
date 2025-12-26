@@ -1,7 +1,6 @@
 package org.yamdut.view.map;
 
 
-
 import java.awt.BorderLayout;
 
 import javax.swing.JPanel;
