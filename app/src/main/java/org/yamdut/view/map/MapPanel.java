@@ -1,6 +1,5 @@
 package org.yamdut.view.map;
 
-
 import java.awt.BorderLayout;
 
 import javax.swing.JPanel;
@@ -136,7 +135,7 @@ public class MapPanel extends JPanel {
         ));
     }
     public void clearMap() {
-        Platform.runLater(() -> webEngine.executeScript("YamditMap.clearMap();"));
+        Platform.runLater(() -> webEngine.executeScript("YamdutMap.clearMap();"));
     }
 
     public void setRoute(double startLat, double startLng, double endLat, double endLng) {
