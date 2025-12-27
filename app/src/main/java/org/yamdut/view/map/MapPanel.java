@@ -11,18 +11,22 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
+import org.yamdut.model.*;
+
 
 
 public class MapPanel extends JPanel {
     private final JFXPanel fxPanel;
     private WebEngine webEngine;
+    private final Role role;
 
     public interface MapClickListener {
         void onMapClick(double lat, double lon);
     }
     private MapClickListener clickListener;
 
-    public MapPanel() {
+    public MapPanel(Role role) {
+        this.role = role;
         setLayout(new BorderLayout());
         fxPanel = new JFXPanel();
         add(fxPanel, BorderLayout.CENTER);
@@ -43,12 +47,24 @@ public class MapPanel extends JPanel {
                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
                     JSObject window = (JSObject) webEngine.executeScript("window");
                     window.setMember("javaConnector", new JavaConnector());
-
+                    
+                    String jsRole = toJsRole(role);
+                    webEngine.executeScript(
+                        "YamdutMap.init('" + jsRole + "');"
+                    );
                 }
             });
 
             fxPanel.setScene(new Scene(webView));
         });
+    }
+
+    private String toJsRole(Role role) {
+        return switch (role) {
+            case DRIVER -> "driver";
+            case PASSENGER -> "passenger";
+            case ADMIN -> "admin";
+        };
     }
 
     public void setMapClickListener(MapClickListener listener) {
@@ -68,13 +84,6 @@ public class MapPanel extends JPanel {
         });
     }
 
-    public void addPickupMarker(double lat, double lon, String id) {
-        Platform.runLater(() -> {
-            webEngine.executeScript(
-                "YamdutMap.addPickupMarker('" + id + "', " + lat + ", " + lon + ");"
-            );
-        });
-    }
 
     public void addDestinationMarker(double lat, double lon, String id) {
         Platform.runLater(() -> {
