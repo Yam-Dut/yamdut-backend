@@ -14,7 +14,7 @@ const YamdutMap = (() => {
 
         map.on("click", e => {
             if (window.javaConnector) {
-                window.javaConnector.receiveMapClick(e.latlng.lat, e.latlng.lng);
+                window.javaConnector.recieveMapClick(e.latlng.lat, e.latlng.lng);
             }
         });
     }
@@ -25,7 +25,7 @@ const YamdutMap = (() => {
 
     function addOrUpdateMarker(id, lat, lon, type, label) {
         if (markers[id]) {
-            markers[id].setLatlng([lat, lon]);
+            markers[id].setLatLng([lat, lon]);
             return;
         }
 
@@ -41,7 +41,7 @@ const YamdutMap = (() => {
     }
 
     function showEntities(entities) {
-        entities.forEach(element => {
+        entities.forEach(e => {
             if (role === "driver" && e.type === "driver") return;
             if (role === "passenger" && e.type === "passenger") return;
 
@@ -51,7 +51,7 @@ const YamdutMap = (() => {
 
     function updateEntityPosition(id, lat, lon) {
         if (markers[id]) {
-            marker[id].setLatlng([lat, lon]);
+            markers[id].setLatLng([lat, lon]);
         }
     }
 
