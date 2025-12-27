@@ -1,116 +1,104 @@
 package org.yamdut.view.dashboard;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.HashSet;
-import java.util.Set;
+import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 
-import org.jxmapviewer.JXMapViewer;
-import org.jxmapviewer.OSMTileFactoryInfo;
-import org.jxmapviewer.viewer.DefaultTileFactory;
-import org.jxmapviewer.viewer.DefaultWaypoint;
-import org.jxmapviewer.viewer.GeoPosition;
-import org.jxmapviewer.viewer.Waypoint;
-import org.jxmapviewer.viewer.WaypointPainter;
+import org.yamdut.model.Role;
 import org.yamdut.utils.Theme;
+import org.yamdut.view.map.MapPanel;
 
 public class DriverDashboard extends BaseDashboard {
 
+    // Controls
     private JToggleButton onlineToggle;
-    private JList<String> requestList;
-    private DefaultListModel<String> requestModel;
+    private JButton acceptRideButton;
 
-    private JXMapViewer mapPanel;
-    private GeoPosition currentLocation;
+    // Requests list
+    private DefaultListModel<String> requestListModel;
+    private JList<String> requestList;
+
+    // Map
+    private MapPanel mapPanel;
 
     public DriverDashboard() {
         super();
+        setWelcomeMessage("Welcome, Driver");
         initContent();
-        initMapDefaults();
     }
 
     @Override
     protected void initContent() {
-        JPanel panel = new JPanel(new BorderLayout(15, 15));
-        panel.setBackground(Theme.BACKGROUND_PRIMARY);
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+
+        // Left control panel
+
+        JPanel controlPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        controlPanel.setBackground(Theme.BACKGROUND_PRIMARY);
 
         onlineToggle = new JToggleButton("Go Online");
+        acceptRideButton = new JButton("Accept Ride");
+        acceptRideButton.setEnabled(false);
 
-        requestModel = new DefaultListModel<>();
-        requestList = new JList<>(requestModel);
+        controlPanel.add(onlineToggle);
+        controlPanel.add(acceptRideButton);
 
-        JScrollPane scroll = new JScrollPane(requestList);
-        scroll.setBorder(BorderFactory.createTitledBorder("Passenger Requests"));
+        // Request list
 
-        mapPanel = new JXMapViewer();
-        mapPanel.setPreferredSize(new Dimension(100, 200));
-        mapPanel.setBorder(BorderFactory.createTitledBorder("Route Simulation"));
+        requestListModel = new DefaultListModel<>();
+        requestList = new JList<>(requestListModel);
 
-        panel.add(onlineToggle, BorderLayout.NORTH);
-        panel.add(scroll, BorderLayout.CENTER);
-        panel.add(mapPanel, BorderLayout.SOUTH);
+        JScrollPane requestScroll = new JScrollPane(requestList);
+        requestScroll.setBorder(
+            BorderFactory.createTitledBorder("Passenger Requests")
+        );
 
-        add(panel, BorderLayout.CENTER);
+        JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
+        leftPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        leftPanel.add(controlPanel, BorderLayout.NORTH);
+        leftPanel.add(requestScroll, BorderLayout.CENTER);
+
+        // Map panel (core)
+
+        mapPanel = new MapPanel(Role.DRIVER);
+
+        // Layout
+
+        mainPanel.add(leftPanel, BorderLayout.WEST);
+        mainPanel.add(mapPanel, BorderLayout.CENTER);
+
+        add(mainPanel, BorderLayout.CENTER);
     }
 
-    private void initMapDefaults() {
-        mapPanel.setTileFactory(new DefaultTileFactory(new OSMTileFactoryInfo()));
-
-        // TEMP: Kathmandu
-        currentLocation = new GeoPosition(27.7172, 85.3240);
-
-        mapPanel.setAddressLocation(currentLocation);
-        mapPanel.setZoom(7);
-    }
-
-    public void showEntities(GeoPosition driverPos, GeoPosition passengerPos) {
-        Set<Waypoint> waypoints = new HashSet<>();
-
-        waypoints.add(new DefaultWaypoint(driverPos));
-        waypoints.add(new DefaultWaypoint(passengerPos));
-
-        WaypointPainter<Waypoint> painter = new WaypointPainter<>();
-        painter.setWaypoints(waypoints);
-
-        mapPanel.setOverlayPainter(painter);
-        mapPanel.repaint();
-    }
+    // Getters (controller access)
 
     public JToggleButton getOnlineToggle() {
         return onlineToggle;
     }
 
-    public DefaultListModel<String> getRequestModel() {
-        return requestModel;
+    public JButton getAcceptRideButton() {
+        return acceptRideButton;
+    }
+
+    public DefaultListModel<String> getRequestListModel() {
+        return requestListModel;
     }
 
     public JList<String> getRequestList() {
         return requestList;
     }
 
-    public JXMapViewer getMapPanel() {
-        return mapPanel;
-    }
-
-    public GeoPosition getCurrentLocation() {
-        return currentLocation;
-    }
-
-    public void setCurrentLocation(GeoPosition position) {
-        this.currentLocation = position;
-        mapPanel.setAddressLocation(position);
-    }
-
-    // compatibility since controller still uses "routePanel"
-    public JPanel getRoutePanel() {
+    public MapPanel getMapPanel() {
         return mapPanel;
     }
 }
