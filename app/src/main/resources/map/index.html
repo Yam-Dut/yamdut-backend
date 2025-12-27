@@ -1,96 +1,22 @@
-//preeti patch
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Yamdut Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Map of yamdut</title>
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
   <style>
-    html, body, #map { height: 100%; margin: 0; }
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    const YamdutMap = {
-      map: null,
-      markers: {},
-      routeLayer: null,
-
-      init: function() {
-        this.map = L.map('map').setView([27.7172, 85.3240], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors'
-        }).addTo(this.map);
-
-        this.map.on('click', (e) => {
-          if (window.javaConnector) {
-            window.javaConnector.recieveMapClick(e.latlng.lat, e.latlng.lng);
-          }
-        });
-      },
-
-      setCenter: function(lat, lon, zoom) {
-        this.map.setView([lat, lon], zoom);
-      },
-
-      addPickupMarker: function(id, lat, lon) {
-        this._addMarker(id, lat, lon, 'blue');
-      },
-
-      addDestinationMarker: function(id, lat, lon) {
-        this._addMarker(id, lat, lon, 'green');
-      },
-
-      addDriverMarker: function(id, lat, lon, name) {
-        this._addMarker(id, lat, lon, 'red', name);
-      },
-
-      addMarker: function(id, lat, lon, type) {
-        let color = type === 'driver' ? 'red' : 'orange';
-        this._addMarker(id, lat, lon, color);
-      },
-
-      _addMarker: function(id, lat, lon, color, popup) {
-        if (this.markers[id]) {
-          this.map.removeLayer(this.markers[id]);
-        }
-        const marker = L.marker([lat, lon], {title: popup || id, icon: L.icon({iconUrl: this._getIcon(color), iconSize:[25,41], iconAnchor:[12,41]})}).addTo(this.map);
-        if (popup) marker.bindPopup(popup);
-        this.markers[id] = marker;
-      },
-
-      updateEntityPosition: function(id, coords) {
-        if (this.markers[id]) {
-          this.markers[id].setLatLng([coords.lat, coords.lon]);
-        }
-      },
-
-      clearMap: function() {
-        Object.values(this.markers).forEach(m => this.map.removeLayer(m));
-        this.markers = {};
-        if (this.routeLayer) this.map.removeLayer(this.routeLayer);
-      },
-
-      setRoute: function(start, end) {
-        if (this.routeLayer) this.map.removeLayer(this.routeLayer);
-        this.routeLayer = L.polyline([start, end], {color: 'blue'}).addTo(this.map);
-        this.map.fitBounds(this.routeLayer.getBounds());
-      },
-
-      _getIcon: function(color) {
-        switch(color){
-          case 'red': return 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-red.png';
-          case 'blue': return 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-blue.png';
-          case 'green': return 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-green.png';
-          default: return 'https://unpkg.com/leaflet/dist/images/marker-icon.png';
-        }
-      }
-    };
-
-    document.addEventListener("DOMContentLoaded", () => YamdutMap.init());
-  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>
