@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-
+/*
+* @author amrxtgh69
+ */
 public class MySqlConfig {
    
     // for linux/mariadb (amrxtgh69)
