@@ -1,23 +1,24 @@
 package org.yamdut.view.map;
 
 import java.awt.BorderLayout;
+import java.net.URL;
 
 import javax.swing.JPanel;
+
+import org.yamdut.model.RideRequest;
+import org.yamdut.model.Role;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import netscape.javascript.JSObject;
-
-import org.yamdut.model.*;
 
 
 
 public class MapPanel extends JPanel {
     private final JFXPanel fxPanel;
-    private WebEngine webEngine;
+    private WebEngine engine;
     private final Role role;
 
     public interface MapClickListener {
@@ -32,43 +33,42 @@ public class MapPanel extends JPanel {
         
         initFX();
     }
-
     private void initFX() {
         Platform.runLater(() -> {
             WebView webView = new WebView();
-            webEngine = webView.getEngine();
+            engine = webView.getEngine();
 
-            //Loading the map.html
-            String url = getClass().getResource("/map/map.html").toExternalForm();
-            webEngine.load(url);
-            
-            webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            engine.getLoadWorker().stateProperty().addListener((obs, old, newState) -> {
                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
-                    JSObject window = (JSObject) webEngine.executeScript("window");
-                    window.setMember("javaConnector", new JavaConnector());
-                    
-                    String jsRole = toJsRole(role);
-                    webEngine.executeScript(
-                        "YamdutMap.init('" + jsRole + "');"
+                    System.out.println("Map loaded — initializing JS…");
+
+                    engine.executeScript(
+                        "YamdutMap.init('" + role.name().toLowerCase() + "');"
                     );
                 }
             });
 
+            URL url = getClass().getResource("/map/index.html");
+
+            if (url == null) throw new IllegalStateException("Map HTML not found on classpath");
+
+            engine.load(url.toExternalForm());
             fxPanel.setScene(new Scene(webView));
         });
     }
 
-    private String toJsRole(Role role) {
-        return switch (role) {
-            case DRIVER -> "driver";
-            case PASSENGER -> "passenger";
-            case ADMIN -> "admin";
-        };
-    }
+
+    // private String toJsRole(Role role) {
+    //     return switch (role) {
+    //         case DRIVER -> "driver";
+    //         case PASSENGER -> "passenger";
+    //         case ADMIN -> "admin";
+    //     };
+    // }
 
     public void setCenter(double lat, double lng, int zoom) {
         Platform.runLater(() -> 
-            webEngine.executeScript(
+            engine.executeScript(
                 "YamdutMap.setCenter(" + lat + "," + lng + "," + zoom + ");"
                 )
         );
@@ -80,13 +80,13 @@ public class MapPanel extends JPanel {
      * **/
     public void showEntities(String jsonData) {
         Platform.runLater(() -> {
-            webEngine.executeScript("YamdutMap.showEntities(" + jsonData + ");");
+            engine.executeScript("YamdutMap.showEntities(" + jsonData + ");");
         });
     }
     
     public void updateEntityPosition(String id, double lat, double lon) {
         Platform.runLater(() ->
-            webEngine.executeScript(
+            engine.executeScript(
                 "YamdutMap.updateEntityPosition('" +
                 id + "'," + lat + "," + lon + ");"
             )
@@ -95,20 +95,20 @@ public class MapPanel extends JPanel {
 
     public void setRoute(double startLat, double startLon, double endLat, double endLon) {
         Platform.runLater(() -> {
-            webEngine.executeScript("YamdutMap.setRoute([" + startLat + "," + startLon + "], [" 
+            engine.executeScript("YamdutMap.setRoute([" + startLat + "," + startLon + "], [" 
                                 + endLat + "," + endLon + "]);");
             });
         }
 
     public void clearRoute() {
         Platform.runLater(() ->
-            webEngine.executeScript("YamdutMap.clearRoute();")
+            engine.executeScript("YamdutMap.clearRoute();")
         );
     }
 
     public void clearMap() {
         Platform.runLater(() ->
-            webEngine.executeScript("YamdutMap.clearMap();")
+            engine.executeScript("YamdutMap.clearMap();")
         );
     }
 
@@ -123,7 +123,7 @@ public class MapPanel extends JPanel {
         // - geocode destination
         // - draw markers + route
     }
-    
+
     public void showRide(RideRequest request) {
         System.out.println(
             "[MAP] Showing accepted ride: " + request
