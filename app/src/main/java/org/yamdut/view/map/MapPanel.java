@@ -112,6 +112,29 @@ public class MapPanel extends JPanel {
         );
     }
 
+    public void showPickupAndDestination(String pickup, String destination) {
+        System.out.println(
+            "[MAP] Showing pickup: " + pickup +
+            " | destination: " + destination
+        );
+
+        // later:
+        // - geocode pickup
+        // - geocode destination
+        // - draw markers + route
+    }
+    
+    public void showRide(RideRequest request) {
+        System.out.println(
+            "[MAP] Showing accepted ride: " + request
+        );
+
+        // later:
+        // - show passenger pickup
+        // - show route
+        // - follow driver location
+    }
+
     public class JavaConnector {
         public void recieveMessage(String msg) {
             System.out.println("JS says" + msg);
