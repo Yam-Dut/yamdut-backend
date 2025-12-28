@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-
+//[e--preetoi]
 public class MySqlConfig {
    
     // for linux/mariadb (amrxtgh69)
