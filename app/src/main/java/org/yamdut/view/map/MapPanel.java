@@ -42,20 +42,19 @@ public class MapPanel extends JPanel {
                 if (newState == javafx.concurrent.Worker.State.SUCCEEDED) {
                     System.out.println("Map loaded — initializing JS…");
 
-                    engine.executeScript(
-                        "YamdutMap.init('" + role.name().toLowerCase() + "');"
-                    );
                     Platform.runLater(() -> {
-                        engine.executeScript("YamdutMap.resize();");
+                        engine.executeScript("YamdutMap.init('" + role.name().toLowerCase() + "')");
+                        engine.executeScript("YamdutMap.resize()");
                     });
                 }
             });
 
-            URL url = getClass().getResource("/map/index.html");
+            //URL url = getClass().getResource("/map/index.html");
 
-            if (url == null) throw new IllegalStateException("Map HTML not found on classpath");
+            //if (url == null) throw new IllegalStateException("Map HTML not found on classpath");
 
-            engine.load(url.toExternalForm());
+            //engine.load(url.toExternalForm());
+            engine.load("http://localhost:8080/index.html");
             fxPanel.setScene(new Scene(webView));
         });
     }
