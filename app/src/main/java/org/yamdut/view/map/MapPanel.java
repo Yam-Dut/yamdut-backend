@@ -45,6 +45,9 @@ public class MapPanel extends JPanel {
                     engine.executeScript(
                         "YamdutMap.init('" + role.name().toLowerCase() + "');"
                     );
+                    Platform.runLater(() -> {
+                        engine.executeScript("YamdutMap.resize();");
+                    });
                 }
             });
 
