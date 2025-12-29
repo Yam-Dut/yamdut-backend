@@ -89,5 +89,19 @@ public class RideSimulationService {
         simulationTimer.start();
     }
 
-    
+    public void stopRide() {
+        if (simulationTimer != null) {
+            simulationTimer.stop();
+            simulationTimer = null;
+        }
+        currentIndex = 0;
+    }
+
+    public boolean isRunning() {
+        return simulationTimer != null && simulationTimer.isRunning();
+    }
+
+    public void setSpeedMultiplier(double multiplier) {
+        this.speedMultiplier = Math.max(0.1, multiplier); // Prevent division by zero/slow
+    }
 }
