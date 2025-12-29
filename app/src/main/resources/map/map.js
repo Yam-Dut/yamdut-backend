@@ -7,7 +7,7 @@ const YamdutMap = (() => {
     function init(userRole) {
         role = userRole;
 
-        map = L.map("map").setView([27.7172, 85.3240], 14);
+        map = L.map("map").setView([27.7172, 85.3240], 12);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19
         }).addTo(map);
@@ -87,7 +87,12 @@ const YamdutMap = (() => {
         Object.values(markers).forEach(m => map.removeLayer(m));
         clearRoute();
     }
-
+    
+    function resize() {
+    if (map) {
+      map.invalidateSize(true);
+    }
+  }
     return {
         init,
         setCenter,
@@ -95,6 +100,7 @@ const YamdutMap = (() => {
         updateEntityPosition,
         setRoute,
         clearRoute,
-        clearMap
+        clearMap,
+        resize
     };
 })();
