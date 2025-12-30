@@ -4,9 +4,13 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import org.yamdut.model.Driver;
 import org.yamdut.model.RideRequest;
+import org.yamdut.model.Driver;
+import org.yamdut.model.User;
 import org.yamdut.service.RideMatchingService;
 import org.yamdut.service.RideSimulationService;
+import org.yamdut.utils.UserSession;
 import org.yamdut.view.dashboard.DriverDashboard;
 
 public class DriverDashboardController {
@@ -14,6 +18,7 @@ public class DriverDashboardController {
     private final DriverDashboard view;
     private final RideMatchingService matchingService;
     private final RideSimulationService simulationService;
+    private final Driver currentDriver;
     private RideRequest currentRide = null;
     private Timer refreshTimer;
     private boolean rideStarted = false;
@@ -22,6 +27,25 @@ public class DriverDashboardController {
         this.view = view;
         this.matchingService = RideMatchingService.getInstance();
         this.simulationService = RideSimulationService.getInstance();
+        
+        // Use real logged-in user
+        User currentUser = UserSession.getInstance().getCurrentUser();
+        if (currentUser == null) {
+             // Fallback for testing without login, though app normally requires login
+             this.currentDriver = new Driver("Unknown Driver", "000", 0, 0, "OFFLINE");
+             this.currentDriver.setId(0);
+        } else {
+             // Populate driver info from User
+             this.currentDriver = new Driver(
+                 currentUser.getFullName(), 
+                 currentUser.getPhone(), 
+                 5.0, // Default rating for now, or fetch from separate driver stats
+                 0,   // Default rides
+                 "OFFLINE"
+             );
+             this.currentDriver.setId((int) currentUser.getId()); // Using User ID as Driver ID
+        }
+        
         bindEvents();
         setupPeriodicRefresh();
     }
@@ -45,7 +69,8 @@ public class DriverDashboardController {
         boolean online = view.getOnlineToggle().isSelected();
 
         if (online) {
-            matchingService.registerDriver(this);
+            currentDriver.setStatus("ONLINE");
+            matchingService.registerDriver(currentDriver);
             view.setOnline(true);
             System.out.println("[DriverController] Driver went online");
             // Immediately refresh and then continue with periodic refresh
@@ -57,7 +82,8 @@ public class DriverDashboardController {
                 JOptionPane.INFORMATION_MESSAGE
             );
         } else {
-            matchingService.unregisterDriver(this);
+            currentDriver.setStatus("OFFLINE");
+            matchingService.unregisterDriver(currentDriver);
             view.setOnline(false);
             view.getRequestListModel().clear();
             view.getAcceptRideButton().setEnabled(false);
@@ -132,7 +158,7 @@ public class DriverDashboardController {
             return;
         }
         
-        matchingService.assignRide(currentRide);
+        matchingService.assignRide(currentRide.getId(), currentDriver.getId(), currentDriver.getName());
 
         // Show ride on map and UI
         showRideOnMap(currentRide);
@@ -184,6 +210,9 @@ public class DriverDashboardController {
         if (result == JOptionPane.YES_OPTION) {
             rideStarted = true;
             view.setRideStarted(true);
+            
+            // Notify service
+            matchingService.startRide(currentRide.getId());
             
             // Start simulation
             double driverLat = currentRide.getPickupLat() + 0.005; // Driver starts slightly away
