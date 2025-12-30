@@ -26,13 +26,30 @@ public abstract class BaseDashboard extends JPanel {
         welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         welcomeLabel.setForeground(Color.WHITE);
 
-        logoutButton = new JButton("Logout");
-        logoutButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        logoutButton = new JButton("🚪 Logout");
+        logoutButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
         logoutButton.setBackground(Color.WHITE);
         logoutButton.setForeground(Theme.COLOR_PRIMARY);
         logoutButton.setFocusPainted(false);
-        logoutButton.setBorderPainted(false);
+        logoutButton.setBorderPainted(true);
+        logoutButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Theme.COLOR_PRIMARY, 1),
+            BorderFactory.createEmptyBorder(8, 16, 8, 16)
+        ));
         logoutButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        
+        // Add hover effect
+        logoutButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                logoutButton.setBackground(new Color(245, 245, 250));
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                logoutButton.setBackground(Color.WHITE);
+            }
+        });
 
         headerPanel.add(welcomeLabel, BorderLayout.WEST);
         headerPanel.add(logoutButton, BorderLayout.EAST);

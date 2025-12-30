@@ -1,91 +1,90 @@
-// package org.yamdut.service;
+package org.yamdut.service;
 
-// import java.util.List;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Timer;
+import org.yamdut.view.map.MapPanel;
 
-// import javax.swing.Timer;
-
-// import org.jxmapviewer.viewer.GeoPosition;
-// import org.yamdut.view.map.MapPanel;
-
-// public class RideSimulationService {
-
-//     private final MapPanel mapPanel;
-//     private final MapService mapService;
-
-//     private List<GeoPosition> currentRoute;
-//     private int routeIndex;
-//     private Timer timer;
-
-//     public RideSimulationService(MapPanel mapPanel, MapService mapService) {
-//         this.mapPanel = mapPanel;
-//         this.mapService = mapService;
-//     }
-
-//     // Entry point
-//     public void startRide(
-//             GeoPosition driver,
-//             GeoPosition passenger,
-//             GeoPosition destination
-//     ) {
-//         // Phase 1: driver → passenger
-//         startRoute(driver, passenger, () -> {
-//             // Phase 2: passenger → destination
-//             startRoute(passenger, destination, null);
-//         });
-//     }
-
-//     private void startRoute(
-//             GeoPosition from,
-//             GeoPosition to,
-//             Runnable onComplete
-//     ) {
-//         currentRoute = mapService.fetchRoute(List.of(from, to));
-//         routeIndex = 0;
-
-//         mapPanel.drawRoute(toJson(currentRoute));
-//         startAnimation(onComplete);
-//     }
-
-//     private void startAnimation(Runnable onComplete) {
-//         stopRide();
-
-//         timer = new Timer(100, e -> {
-//             if (routeIndex >= currentRoute.size()) {
-//                 stopRide();
-//                 if (onComplete != null) onComplete.run();
-//                 return;
-//             }
-
-//             GeoPosition pos = currentRoute.get(routeIndex++);
-//             mapPanel.updateEntityPosition(
-//                     "driver1",
-//                     pos.getLatitude(),
-//                     pos.getLongitude()
-//             );
-//         });
-
-//         timer.start();
-//     }
-
-//     public void stopRide() {
-//         if (timer != null) {
-//             timer.stop();
-//             timer = null;
-//         }
-//         mapPanel.stopSimulation();
-//     }
-
-//     private String toJson(List<GeoPosition> route) {
-//         StringBuilder sb = new StringBuilder("[");
-//         for (GeoPosition gp : route) {
-//             sb.append(String.format(
-//                     "{\"lat\":%f,\"lon\":%f},",
-//                     gp.getLatitude(),
-//                     gp.getLongitude()
-//             ));
-//         }
-//         if (sb.length() > 1) sb.setLength(sb.length() - 1);
-//         sb.append("]");
-//         return sb.toString();
-//     }
-// }
+public class RideSimulationService {
+    private static RideSimulationService instance;
+    private Timer simulationTimer;
+    private MapPanel mapPanel;
+    private List<double[]> routePoints;
+    private int currentIndex = 0;
+    private String driverId = "driver1";
+    private Runnable onComplete;
+    
+    private RideSimulationService() {}
+    
+    public static RideSimulationService getInstance() {
+        if (instance == null) {
+            instance = new RideSimulationService();
+        }
+        return instance;
+    }
+    
+    public void startRide(
+            MapPanel mapPanel,
+            double driverLat, double driverLon,
+            double pickupLat, double pickupLon,
+            double destLat, double destLon,
+            Runnable onComplete
+    ) {
+        this.mapPanel = mapPanel;
+        this.onComplete = onComplete;
+        this.routePoints = new ArrayList<>();
+        
+        // Generate route points (simplified - in real app, use OSRM route)
+        generateRoutePoints(driverLat, driverLon, pickupLat, pickupLon);
+        generateRoutePoints(pickupLat, pickupLon, destLat, destLon);
+        
+        currentIndex = 0;
+        startAnimation();
+    }
+    
+    private void generateRoutePoints(double fromLat, double fromLon, double toLat, double toLon) {
+        // Generate intermediate points for smooth animation
+        int steps = 20;
+        for (int i = 0; i <= steps; i++) {
+            double ratio = (double) i / steps;
+            double lat = fromLat + (toLat - fromLat) * ratio;
+            double lon = fromLon + (toLon - fromLon) * ratio;
+            routePoints.add(new double[]{lat, lon});
+        }
+    }
+    
+    private void startAnimation() {
+        stopRide();
+        
+        simulationTimer = new Timer(200, e -> {
+            if (currentIndex >= routePoints.size()) {
+                stopRide();
+                if (onComplete != null) {
+                    onComplete.run();
+                }
+                return;
+            }
+            
+            double[] point = routePoints.get(currentIndex++);
+            mapPanel.updateEntityPosition(driverId, point[0], point[1]);
+            
+            // Center map on driver
+            mapPanel.setCenter(point[0], point[1], 15);
+        });
+        
+        simulationTimer.start();
+    }
+    
+    public void stopRide() {
+        if (simulationTimer != null) {
+            simulationTimer.stop();
+            simulationTimer = null;
+        }
+        currentIndex = 0;
+        routePoints = null;
+    }
+    
+    public boolean isRunning() {
+        return simulationTimer != null && simulationTimer.isRunning();
+    }
+}
