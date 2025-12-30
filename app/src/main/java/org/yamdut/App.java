@@ -21,7 +21,9 @@ import org.yamdut.view.signup.SignUpScreen;
 public class App {
 
     public static void main(String[] args) {
-
+        // JavaFX Platform will be initialized automatically when first JFXPanel is created
+        // No need to call Platform.startup() explicitly
+        
         SwingUtilities.invokeLater(() -> {
 
             // ───────────────────────── Frame ─────────────────────────
