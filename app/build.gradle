@@ -47,7 +47,9 @@ dependencies {
        DB + Env
         */
     // implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
-    implementation 'org.mysql:mysql-connector-j:9.1.0' 
+    //implementation 'org.mysql:mysql-connector-j:9.1.0' 
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.3'
+
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
     //add org.json
