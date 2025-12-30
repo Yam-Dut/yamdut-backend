@@ -3,6 +3,7 @@ package org.yamdut.controller;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 
 import org.yamdut.model.RideRequest;
 import org.yamdut.service.GeocodingService;
@@ -17,11 +18,12 @@ public class PassengerDashboardController {
     private final GeocodingService geocodingService;
 
     private RideRequest currentRequest;
-    private double pickupLat = 0;
-    private double pickupLon = 0;
-    private double destinationLat = 0;
-    private double destinationLon = 0;
-    private boolean rideAccepted = false;
+    private double pickupLat;
+    private double pickupLon;
+    private double destinationLat;
+    private double destinationLon;
+    private boolean rideAccepted;
+    private Timer pollTimer;
 
     public PassengerDashboardController(PassengerDashboard view) {
         this.view = view;
@@ -239,6 +241,39 @@ public class PassengerDashboardController {
             "Request Submitted",
             JOptionPane.INFORMATION_MESSAGE
         );
+        
+        startPolling();
+    }
+    
+    private void startPolling() {
+        if (pollTimer != null && pollTimer.isRunning()) return;
+        
+        pollTimer = new Timer(3000, e -> {
+            if (currentRequest == null) {
+                stopPolling();
+                return;
+            }
+            
+            RideRequest updated = matchingService.getRideStatus(currentRequest.getId());
+            if (updated != null) {
+                if ("ACCEPTED".equals(updated.getStatus()) && !rideAccepted) {
+                    // Driver accepted
+                    onRideAccepted(updated.getDriverName(), updated.getFare());
+                } else if ("IN_PROGRESS".equals(updated.getStatus())) {
+                     // Driver is approaching (started ride)
+                     stopPolling();
+                     onDriverApproaching();
+                }
+            }
+        });
+        pollTimer.start();
+    }
+    
+    private void stopPolling() {
+        if (pollTimer != null) {
+            pollTimer.stop();
+            pollTimer = null;
+        }
     }
     
     private void showDriversOnMap(java.util.List<?> drivers) {
@@ -259,13 +294,24 @@ public class PassengerDashboardController {
         view.getMapPanel().showEntities(entitiesJson.toString());
     }
     
-    public void onRideAccepted() {
+    public void onRideAccepted(String driverName, double fare) {
         rideAccepted = true;
         SwingUtilities.invokeLater(() -> {
             JOptionPane.showMessageDialog(
                 view,
-                "Driver accepted your ride! They are on the way.",
+                (driverName != null ? driverName : "Driver") + " accepted coming to pick u up\nFare: $" + String.format("%.2f", fare),
                 "Ride Accepted",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+    }
+
+    public void onDriverApproaching() {
+        SwingUtilities.invokeLater(() -> {
+            JOptionPane.showMessageDialog(
+                view,
+                "Driver is approaching to you",
+                "Driver Arriving",
                 JOptionPane.INFORMATION_MESSAGE
             );
         });
@@ -298,7 +344,7 @@ public class PassengerDashboardController {
         
         if (result == JOptionPane.YES_OPTION) {
             // Remove request from matching service
-            matchingService.cancelRide(currentRequest);
+            matchingService.cancelRide(currentRequest.getId());
             
             // Clear UI
             clearAll();
