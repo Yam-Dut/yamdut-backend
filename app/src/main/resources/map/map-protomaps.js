@@ -31,8 +31,6 @@ const YamdutMap = (() => {
             attributionControl: true
         }).setView([27.7172, 85.3240], 14);
 
-        // Mapbox Raster Tiles - YOU NEED TO GET A FREE API KEY FROM https://account.mapbox.com/
-        // Replace 'YOUR_MAPBOX_TOKEN' with your actual token
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
