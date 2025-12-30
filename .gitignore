@@ -26,3 +26,6 @@ app/src/main/resources/web/token.js
 /Task
 
 .vscode
+# Ignore MySQL config file
+app/src/main/java/org/yamdut/database/MySqlConfig.java
+
