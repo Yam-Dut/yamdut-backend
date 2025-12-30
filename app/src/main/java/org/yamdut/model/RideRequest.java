@@ -1,104 +1,171 @@
 package org.yamdut.model;
 
 public class RideRequest {
-    private final String pickup;
-    private final String destination;
-    private final double pickupLat;
-    private final double pickupLon;
-    private final double destLat;
-    private final double destLon;
-    private boolean accepted;
-    private String passengerId;
+
+    // =====================
+    // DB fields
+    // =====================
+    private int id;                 // ride_requests.id
+    private int passengerId;        // INT (matches DB)
     private String passengerName;
 
-    public RideRequest(String pickup, String destination) {
+    private String pickup;
+    private String dropoff;
+    
+    // Coordinates
+    private double pickupLat;
+    private double pickupLon;
+    private double destLat;
+    private double destLon;
+
+    // Driver info (assigned)
+    private int driverId;
+    private String driverName;
+    private double fare;
+    private String status; // PENDING, ACCEPTED, CANCELLED
+    private boolean accepted;
+
+    // =====================
+    // Constructors
+    // =====================
+
+    // Used when passenger books a ride (before DB id exists)
+    public RideRequest(int passengerId, String passengerName, String pickup, String dropoff) {
+        this.passengerId = passengerId;
+        this.passengerName = passengerName;
         this.pickup = pickup;
-        this.destination = destination;
-        this.pickupLat = 0;
-        this.pickupLon = 0;
-        this.destLat = 0;
-        this.destLon = 0;
+        this.dropoff = dropoff;
+        this.driverId = 0;
+        this.status = "PENDING";
         this.accepted = false;
     }
-    
-    public RideRequest(String pickup, String destination, double pickupLat, double pickupLon, 
-                      double destLat, double destLon, String passengerId, String passengerName) {
+
+    // Constructor with coordinates (used by Controller)
+    public RideRequest(String pickup, String dropoff, double pickupLat, double pickupLon, 
+                      double destLat, double destLon, String passengerIdStr, String passengerName) {
         this.pickup = pickup;
-        this.destination = destination;
+        this.dropoff = dropoff;
         this.pickupLat = pickupLat;
         this.pickupLon = pickupLon;
         this.destLat = destLat;
         this.destLon = destLon;
-        this.accepted = false;
-        this.passengerId = passengerId;
+        
+        // Handle passenger ID parsing
+        try {
+            this.passengerId = Integer.parseInt(passengerIdStr.replaceAll("\\D", "")); 
+            if (this.passengerId == 0) this.passengerId = 1; // Fallback
+        } catch (NumberFormatException e) {
+            this.passengerId = 1; // Fallback
+        }
+        
         this.passengerName = passengerName;
+        this.driverId = 0;
+        this.status = "PENDING";
+        this.accepted = false;
     }
 
-    public void markAccepted() {
-        this.accepted = true;
+    // =====================
+    // Getters
+    // =====================
+
+    public int getId() {
+        return id;
+    }
+
+    public int getPassengerId() {
+        return passengerId;
+    }
+
+    public String getPassengerName() {
+        return passengerName != null ? passengerName : "Unknown";
+    }
+
+    public String getPickup() {
+        return pickup;
+    }
+
+    public String getDropoff() {
+        return dropoff;
+    }
+    
+    // Alias for getDropoff to match controller usage
+    public String getDestination() {
+        return dropoff;
+    }
+    
+    public double getPickupLat() { return pickupLat; }
+    public double getPickupLon() { return pickupLon; }
+    public double getDestLat() { return destLat; }
+    public double getDestLon() { return destLon; }
+
+    public int getDriverId() {
+        return driverId;
+    }
+
+    public String getDriverName() {
+        return driverName;
+    }
+
+    public double getFare() {
+        return fare;
+    }
+
+    public String getStatus() {
+        return status;
     }
 
     public boolean isAccepted() {
         return accepted;
     }
-    
-    public String getPickup() {
-        return pickup;
+
+    // =====================
+    // Setters / State
+    // =====================
+
+    public void setId(int id) {
+        this.id = id;
     }
-    
-    public String getDestination() {
-        return destination;
+
+    public void markAccepted() {
+        this.accepted = true;
+        this.status = "ACCEPTED";
     }
-    
-    public double getPickupLat() {
-        return pickupLat;
+
+    public void setDriverId(int driverId) {
+        this.driverId = driverId;
     }
-    
-    public double getPickupLon() {
-        return pickupLon;
+
+    public void setDriverName(String driverName) {
+        this.driverName = driverName;
     }
-    
-    public double getDestLat() {
-        return destLat;
+
+    public void setStatus(String status) {
+        this.status = status;
     }
-    
-    public double getDestLon() {
-        return destLon;
+
+    public void setFare(double fare) {
+        this.fare = fare;
     }
-    
-    public String getPassengerId() {
-        return passengerId;
-    }
-    
-    public String getPassengerName() {
-        return passengerName != null ? passengerName : "Unknown";
-    }
-    
-    public void setPassengerName(String name) {
-        this.passengerName = name;
-    }
+
+    // =====================
+    // Object overrides
+    // =====================
 
     @Override
     public String toString() {
-        String name = passengerName != null ? passengerName : "Passenger";
-        // Shorten addresses for display
-        String shortPickup = pickup.length() > 30 ? pickup.substring(0, 27) + "..." : pickup;
-        String shortDest = destination.length() > 30 ? destination.substring(0, 27) + "..." : destination;
-        return name + ": " + shortPickup + " → " + shortDest;
+        return getPassengerName();
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        RideRequest that = (RideRequest) obj;
-        return passengerId != null && passengerId.equals(that.passengerId) &&
-               pickup.equals(that.pickup) && destination.equals(that.destination);
+        if (!(obj instanceof RideRequest)) return false;
+        RideRequest other = (RideRequest) obj;
+        return id == other.id;
     }
-    
+
     @Override
     public int hashCode() {
-        return (passengerId != null ? passengerId.hashCode() : 0) + 
-               pickup.hashCode() + destination.hashCode();
+        return Integer.hashCode(id);
     }
 }
