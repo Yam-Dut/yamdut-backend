@@ -1,8 +1,6 @@
 package org.yamdut.controller;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
+import javax.swing.JOptionPane;
 import org.yamdut.model.RideRequest;
 import org.yamdut.service.RideMatchingService;
 import org.yamdut.view.dashboard.DriverDashboard;
@@ -10,64 +8,61 @@ import org.yamdut.view.dashboard.DriverDashboard;
 public class DriverDashboardController {
 
     private final DriverDashboard view;
-    private final String driverName = "Driver A";
+    private final RideMatchingService matchingService;
 
     public DriverDashboardController(DriverDashboard view) {
         this.view = view;
-        initController();
+        this.matchingService = RideMatchingService.getInstance();
+        bindEvents();
     }
-
-    private void initController() {
-
-        view.getOnlineToggle().addActionListener(e -> {
-            if (view.getOnlineToggle().isSelected()) {
-                view.getOnlineToggle().setText("Online");
-                loadRequests();
-            } else {
-                view.getOnlineToggle().setText("Go Online");
-                view.getRequestModel().clear();
-            }
-        });
-
-        view.getRequestList().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                acceptRide();
-            }
-        });
+    private void bindEvents() {
+        view.getOnlineToggle().addActionListener(e -> toggleOnline());
+        view.getAcceptRideButton().addActionListener(e -> acceptRide());
     }
+    private void toggleOnline() {
+        boolean online = view.getOnlineToggle().isSelected();
 
-    private void loadRequests() {
-        view.getRequestModel().clear();
+        view.getOnlineToggle().setText(
+            online ? "Go Offline" : "Go Online"
+        );
 
-        for (RideRequest request : RideMatchingService.getRequests()) {
-            if (!request.isAccepted()) {
-                view.getRequestModel().addElement(
-                        request.getPickup() + " → " + request.getDestination()
-                );
-            }
+        if (online) {
+            matchingService.registerDriver(this);
+            refreshRequests();
+        } else {
+            matchingService.unregisterDriver(this);
+            view.getRequestListModel().clear();
         }
     }
 
+    private void refreshRequests() {
+        view.getRequestListModel().clear();
+
+        for (RideRequest request : matchingService.getPendingRequests()) {
+            view.getRequestListModel().addElement(request.toString());
+        }
+
+        view.getAcceptRideButton().setEnabled(
+            !view.getRequestListModel().isEmpty()
+        );
+    }
     private void acceptRide() {
         int index = view.getRequestList().getSelectedIndex();
-        if (index == -1) return;
 
-        RideRequest request = RideMatchingService.getRequests().get(index);
+        if (index == -1) {
+            JOptionPane.showMessageDialog(
+                view,
+                "Select a request first"
+            );
+            return;
+        }
 
-        request.accept(driverName);
-        simulateRoute(request);
-    }
+        RideRequest request =
+            matchingService.getPendingRequests().get(index);
 
-    private void simulateRoute(RideRequest request) {
-        JPanel panel = view.getRoutePanel();
-        panel.removeAll();
+        matchingService.assignRide(request);
 
-        JLabel label = new JLabel(
-                "Driving to pickup at: " + request.getPickup()
-        );
-
-        panel.add(label);
-        panel.revalidate();
-        panel.repaint();
+        view.getMapPanel().showRide(request);
+        refreshRequests();
     }
 }

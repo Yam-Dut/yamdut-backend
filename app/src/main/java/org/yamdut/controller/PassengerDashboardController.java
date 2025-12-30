@@ -1,9 +1,6 @@
 package org.yamdut.controller;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.Timer;
 
 import org.yamdut.model.RideRequest;
 import org.yamdut.service.RideMatchingService;
@@ -12,63 +9,41 @@ import org.yamdut.view.dashboard.PassengerDashboard;
 public class PassengerDashboardController {
 
     private final PassengerDashboard view;
-    private RideRequest currentRequest;
+    private final RideMatchingService matchingService;
+
+    private RideRequest currenRequest;
 
     public PassengerDashboardController(PassengerDashboard view) {
         this.view = view;
-        initController();
+        this.matchingService = RideMatchingService.getInstance();
+        bindEvents();
     }
 
-    private void initController() {
-        view.getBookRideButton().addActionListener(e -> submitRideRequest());
-        view.getLogoutButton().addActionListener(e -> logout());
+    private void bindEvents() {
+        view.getBookRideButton().addActionListener(e -> bookRide());
     }
 
-    private void submitRideRequest() {
-        String pickup = view.getPickupField().getText();
-        String destination = view.getDestinationField().getText();
+    private void bookRide() {
+        String pickup = view.getPickupField().getText().trim();
+        String destination = view.getDestinationField().getText().trim();
 
         if (pickup.isEmpty() || destination.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "Enter pickup and destination");
+            JOptionPane.showMessageDialog(
+                view,
+                "Pickup and destination are required"
+            );
             return;
         }
 
-        currentRequest = new RideRequest(pickup, destination);
-        RideMatchingService.submit(currentRequest);
+        currenRequest = new RideRequest(pickup, destination);
 
-        showWaitingUI();
-        waitForDriverAcceptance();
-    }
+        var drivers = matchingService.findAvailableDrivers(currenRequest);
 
-    private void showWaitingUI() {
-        JPanel routePanel = view.getRoutePanel();
-        routePanel.removeAll();
-        routePanel.add(new JLabel("Waiting for a driver to accept..."));
-        routePanel.revalidate();
-        routePanel.repaint();
-    }
-
-    private void waitForDriverAcceptance() {
-        Timer timer = new Timer(1000, e -> {
-            if (currentRequest.isAccepted()) {
-                ((Timer) e.getSource()).stop();
-                simulateRoute();
-            }
-        });
-        timer.start();
-    }
-
-    private void simulateRoute() {
-        JPanel routePanel = view.getRoutePanel();
-        routePanel.removeAll();
-
-        routePanel.add(new JLabel(
-                "Driver " + currentRequest.getAcceptedDriver()
-                        + " is on the way to " + currentRequest.getPickup()
-        ));
-
-        routePanel.revalidate();
-        routePanel.repaint();
+        view.getDriverListModel().clear();
+        drivers.forEach(driver ->
+            view.getDriverListModel().addElement(driver.toString())
+        );
+        view.getMapPanel().showPickupAndDestination(pickup, destination);
     }
 
     private void logout() {
