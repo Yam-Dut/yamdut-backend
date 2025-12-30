@@ -1,33 +1,27 @@
 package org.yamdut.model;
 
-
 public class RideRequest {
-   private final String pickup;
+
+    private final String pickup;
     private final String destination;
-    private String acceptedDriver;
+    private boolean accepted;
 
     public RideRequest(String pickup, String destination) {
         this.pickup = pickup;
         this.destination = destination;
+        this.accepted = false;
     }
 
-    public String getPickup() {
-        return pickup;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public String getAcceptedDriver() {
-        return acceptedDriver;
-    }
-
-    public void accept(String driverName) {
-        this.acceptedDriver = driverName;
+    public void markAccepted() {
+        this.accepted = true;
     }
 
     public boolean isAccepted() {
-        return acceptedDriver != null;
+        return accepted;
+    }
+
+    @Override
+    public String toString() {
+        return pickup + " → " + destination;
     }
 }

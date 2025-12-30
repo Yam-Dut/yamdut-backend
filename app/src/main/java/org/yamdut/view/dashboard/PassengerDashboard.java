@@ -1,8 +1,6 @@
 package org.yamdut.view.dashboard;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
@@ -14,66 +12,79 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import org.jxmapviewer.viewer.GeoPosition;   // <-- ADD THIS
 import org.yamdut.utils.Theme;
+import org.yamdut.model.Role;
+import org.yamdut.view.map.MapPanel;
 
 public class PassengerDashboard extends BaseDashboard {
     private JTextField pickupField;
     private JTextField destinationField;
     private JButton bookRideButton;
-    private JList<String> driverList;
+
     private DefaultListModel<String> driverListModel;
-    private JPanel routePanel;
+    private JList<String> driverList;
+
+    private MapPanel mapPanel;
 
     public PassengerDashboard() {
         super();
-        initContent(); // REQUIRED
+        setWelcomeMessage("Welcome, Passenger");
+        initContent(); 
     }
 
     @Override
     protected void initContent() {
-        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        contentPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(Theme.BACKGROUND_PRIMARY);
 
-        // ── Top: Location inputs ───────────────────────────
-        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
-        inputPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+
+        //Left control panel
+
+        JPanel controlPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        controlPanel.setBackground(Theme.BACKGROUND_PRIMARY);
 
         pickupField = new JTextField();
         destinationField = new JTextField();
 
         bookRideButton = new JButton("Book Ride");
 
-        inputPanel.add(new JLabel("Your Location"));
-        inputPanel.add(pickupField);
+        controlPanel.add(new JLabel("Pickup Location"));
+        controlPanel.add(pickupField);
 
-        inputPanel.add(new JLabel("Destination"));
-        inputPanel.add(destinationField);
+        controlPanel.add(new JLabel("Destination"));
+        controlPanel.add(destinationField);
 
-        inputPanel.add(new JLabel());
-        inputPanel.add(bookRideButton);
+        controlPanel.add(new JLabel());
+        controlPanel.add(bookRideButton);
 
-        // ── Center: Driver list ───────────────────────────
+
+        //driver list
+        
         driverListModel = new DefaultListModel<>();
         driverList = new JList<>(driverListModel);
         JScrollPane driverScroll = new JScrollPane(driverList);
         driverScroll.setBorder(BorderFactory.createTitledBorder("Available Drivers"));
 
-        // ── Bottom: Route simulation panel ─────────────────
-        routePanel = new JPanel();
-        routePanel.setPreferredSize(new Dimension(100, 200));
-        routePanel.setBackground(Color.WHITE);
-        routePanel.setBorder(BorderFactory.createTitledBorder("Route Simulation"));
+        JPanel leftPanel = new JPanel(new BorderLayout(10, 10));
+        leftPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        leftPanel.add(controlPanel, BorderLayout.NORTH);
+        leftPanel.add(driverScroll, BorderLayout.CENTER);
 
-        contentPanel.add(inputPanel, BorderLayout.NORTH);
-        contentPanel.add(driverScroll, BorderLayout.CENTER);
-        contentPanel.add(routePanel, BorderLayout.SOUTH);
 
-        add(contentPanel, BorderLayout.CENTER);
+        //map panel (core)
+
+        mapPanel = new MapPanel(Role.PASSENGER);
+    
+        //layout
+
+        mainPanel.add(leftPanel, BorderLayout.WEST);
+        mainPanel.add(mapPanel, BorderLayout.CENTER);
+
+        add(mainPanel, BorderLayout.CENTER);
     }
 
-    // ── Getters for controller ─────────────────────────────
+
     public JTextField getPickupField() {
         return pickupField;
     }
@@ -86,24 +97,16 @@ public class PassengerDashboard extends BaseDashboard {
         return bookRideButton;
     }
 
-    public JList<String> getDriverList() {
-        return driverList;
+    public MapPanel getMapPanel() {
+        return mapPanel;
     }
 
     public DefaultListModel<String> getDriverListModel() {
         return driverListModel;
     }
-
-    public JPanel getRoutePanel() {
-        return routePanel;
-    }
-
-    // ── TEMP COORDINATE PROVIDERS (will replace with geocoding later) ──
-    public GeoPosition getPickupLocation() {
-        return new GeoPosition(27.7172, 85.3240);
-    }
-
-    public GeoPosition getDropoffLocation() {
-        return new GeoPosition(27.6730, 85.3250);
+    public JList<String> getDriverList() {
+        return driverList;
     }
 }
+
+
