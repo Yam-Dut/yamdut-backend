@@ -26,3 +26,4 @@ app/src/main/resources/web/token.js
 /Task
 
 .vscode
+app/src/main/java/org/yamdut/database/MySqlConfig.java
