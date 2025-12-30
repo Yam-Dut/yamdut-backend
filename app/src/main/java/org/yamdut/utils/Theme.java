@@ -4,29 +4,30 @@ import java.awt.*;
 
 public class Theme {
     // Primary Colors
-    public static final Color COLOR_PRIMARY = new Color(0, 122, 255);  // iOS Blue
-    public static final Color COLOR_SECONDARY = new Color(52, 199, 89); // Green
-    public static final Color COLOR_ACCENT = new Color(255, 149, 0);   // Orange
+    // premium Dark Theme
+    public static final Color COLOR_PRIMARY = new Color(0, 122, 255);    // iOS Blue
+    public static final Color COLOR_SECONDARY = new Color(192, 192, 192);// Silver
+    public static final Color COLOR_ACCENT = new Color(255, 69, 0);      // Orange-Red
     
     // Background Colors
-    public static final Color BACKGROUND_PRIMARY = new Color(242, 242, 247);
-    public static final Color BACKGROUND_SECONDARY = Color.WHITE;
-    public static final Color BACKGROUND_CARD = Color.WHITE;
+    public static final Color BACKGROUND_PRIMARY = new Color(18, 18, 18); // Deep Black
+    public static final Color BACKGROUND_SECONDARY = new Color(30, 30, 30); // Dark Gray
+    public static final Color BACKGROUND_CARD = new Color(30, 30, 30);
     
     // Text Colors
-    public static final Color TEXT_PRIMARY = new Color(0, 0, 0);
-    public static final Color TEXT_SECONDARY = new Color(142, 142, 147);
-    public static final Color TEXT_TERTIARY = new Color(174, 174, 178);
+    public static final Color TEXT_PRIMARY = new Color(255, 255, 255);    // White
+    public static final Color TEXT_SECONDARY = new Color(179, 179, 179);  // Light Gray
+    public static final Color TEXT_TERTIARY = new Color(128, 128, 128);   // Gray
     
     // Border Colors
-    public static final Color BORDER_COLOR = new Color(230, 230, 235);
-    public static final Color BORDER_FOCUS = new Color(0, 122, 255);
+    public static final Color BORDER_COLOR = new Color(50, 50, 50);
+    public static final Color BORDER_FOCUS = new Color(0, 122, 255);      // Blue
     
     // Status Colors
-    public static final Color SUCCESS_COLOR = new Color(52, 199, 89);
-    public static final Color WARNING_COLOR = new Color(255, 149, 0);
-    public static final Color ERROR_COLOR = new Color(255, 59, 48);
-    public static final Color INFO_COLOR = new Color(0, 122, 255);
+    public static final Color SUCCESS_COLOR = new Color(75, 181, 67);     // Green
+    public static final Color WARNING_COLOR = new Color(255, 165, 0);     // Orange
+    public static final Color ERROR_COLOR = new Color(255, 82, 82);       // Red
+    public static final Color INFO_COLOR = new Color(33, 150, 243);       // Blue
     
     // Fonts
     public static Font getTitleFont() {

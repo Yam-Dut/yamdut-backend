@@ -56,13 +56,17 @@ public class InputField extends JPanel {
         if (textField != null) {
             textField.setBorder(compoundBorder);
             textField.setFont(fieldFont);
-            textField.setBackground(Color.WHITE);
+            textField.setBackground(Theme.BACKGROUND_SECONDARY);
+            textField.setForeground(Theme.TEXT_PRIMARY);
+            textField.setCaretColor(Theme.TEXT_PRIMARY);
         }
         
         if (passwordField != null) {
             passwordField.setBorder(compoundBorder);
             passwordField.setFont(fieldFont);
-            passwordField.setBackground(Color.WHITE);
+            passwordField.setBackground(Theme.BACKGROUND_SECONDARY);
+            passwordField.setForeground(Theme.TEXT_PRIMARY);
+            passwordField.setCaretColor(Theme.TEXT_PRIMARY);
         }
     }
     
