@@ -81,11 +81,12 @@ public class LoginScreen extends JPanel {
             JPanel optionsPanel = new JPanel(new BorderLayout());
             optionsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
             
-            rememberMeCheckbox = new JCheckBox("Remember me");
+            rememberMeCheckbox = new JCheckBox("💾 Remember me");
             rememberMeCheckbox.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             rememberMeCheckbox.setForeground(Theme.TEXT_SECONDARY);
             rememberMeCheckbox.setBackground(Theme.BACKGROUND_PRIMARY);
             rememberMeCheckbox.setFocusPainted(false);
+            rememberMeCheckbox.setSelected(false); // Default to unchecked
             
             forgotPasswordLabel = new JLabel("Forgot Password?");
             forgotPasswordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -133,17 +134,33 @@ public class LoginScreen extends JPanel {
             mainPanel.add(dividerPanel, gbc);
             
             // Sign Up Button
-            signupButton = new JButton("Create New Account");
-            signupButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            signupButton = new JButton("✨ Create New Account");
+            signupButton.setFont(new Font("Segoe UI", Font.BOLD, 14));
             signupButton.setForeground(Theme.COLOR_PRIMARY);
             signupButton.setBackground(Color.WHITE);
             signupButton.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.COLOR_PRIMARY, 1),
+                BorderFactory.createLineBorder(Theme.COLOR_PRIMARY, 2),
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
             ));
             signupButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             signupButton.setFocusPainted(false);
             signupButton.setPreferredSize(new Dimension(300, 45));
+            
+            // Add hover effect
+            signupButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    signupButton.setBackground(new Color(245, 245, 250));
+                    signupButton.setForeground(Theme.COLOR_PRIMARY.darker());
+                }
+                
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    signupButton.setBackground(Color.WHITE);
+                    signupButton.setForeground(Theme.COLOR_PRIMARY);
+                }
+            });
+            
             mainPanel.add(signupButton, gbc);
             
             // Add main panel to center
