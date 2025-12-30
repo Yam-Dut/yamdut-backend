@@ -10,39 +10,37 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 ext {
     javafxVersion = '21.0.2'
-    os = org.gradle.internal.os.OperatingSystem.current()
 }
 
+def os = org.gradle.internal.os.OperatingSystem.current()
+def classifier = os.isWindows() ? 'win' : os.isMacOsX() ? 'mac' : 'linux'
+
 dependencies {
+    implementation "org.openjfx:javafx-base:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-controls:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-graphics:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-web:$javafxVersion:$classifier"
+    implementation "org.openjfx:javafx-swing:$javafxVersion:$classifier" 
 
-    /* 
-       JavaFX (auto OS detect)
-        */
-    if (os.isLinux()) {
-        implementation "org.openjfx:javafx-controls:${javafxVersion}:linux"
-        implementation "org.openjfx:javafx-graphics:${javafxVersion}:linux"
-        implementation "org.openjfx:javafx-web:${javafxVersion}:linux"
-    } else if (os.isWindows()) {
-        implementation "org.openjfx:javafx-controls:${javafxVersion}:win"
-        implementation "org.openjfx:javafx-graphics:${javafxVersion}:win"
-        implementation "org.openjfx:javafx-web:${javafxVersion}:win"
-    } else {
-        throw new GradleException("Unsupported OS for JavaFX")
-    }
-
-    /* 
-       Swing Map Viewer
-        */
-    implementation 'org.jxmapviewer:jxmapviewer2:2.6'
+    implementation "org.jxmapviewer:jxmapviewer2:2.8"
 
     /* 
        Jakarta Mail
         */
-    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+    implementation 'jakarta.mail:jakarta.mail-api:2.1.3'
+
+    implementation 'org.eclipse.angus:angus-mail:2.0.2'
+
+
+        /*
+       HTTP Client (OkHttp) + JSON (Gson)
+     */
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
 
     /* 
        DB + Env
@@ -51,6 +49,8 @@ dependencies {
     implementation 'org.mysql:mysql-connector-j:9.1.0' 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
+    //add org.json
+    implementation "org.json:json:20240303"
     /* 
        Testing
         */

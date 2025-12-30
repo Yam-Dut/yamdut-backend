@@ -12,4 +12,15 @@ public interface UserDAO {
     User getUserByEmail(String email);
 
     boolean existsByEmail(String email);
+    
+    // Admin dashboard methods
+    java.util.List<User> getAllUsers();
+    
+    boolean createUser(User user);
+    
+    User getUserById(int userId);
+    
+    boolean updateUser(User user);
+    
+    boolean deleteUser(int userId);
 }

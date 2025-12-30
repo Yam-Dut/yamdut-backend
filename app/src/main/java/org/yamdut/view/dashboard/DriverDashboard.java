@@ -1,152 +1,116 @@
 package org.yamdut.view.dashboard;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
+
+import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.OSMTileFactoryInfo;
+import org.jxmapviewer.viewer.DefaultTileFactory;
+import org.jxmapviewer.viewer.DefaultWaypoint;
+import org.jxmapviewer.viewer.GeoPosition;
+import org.jxmapviewer.viewer.Waypoint;
+import org.jxmapviewer.viewer.WaypointPainter;
 import org.yamdut.utils.Theme;
 
 public class DriverDashboard extends BaseDashboard {
-    private JButton goOnlineButton;
-    private JButton viewRequestsButton;
-    private JButton earningsButton;
-    private JLabel statusLabel;
-    private boolean isOnline = false;
+
+    private JToggleButton onlineToggle;
+    private JList<String> requestList;
+    private DefaultListModel<String> requestModel;
+
+    private JXMapViewer mapPanel;
+    private GeoPosition currentLocation;
 
     public DriverDashboard() {
         super();
         initContent();
-        setWelcomeMessage("Welcome, Driver!");
+        initMapDefaults();
     }
 
     @Override
     protected void initContent() {
-        JPanel contentPanel = new JPanel(new GridBagLayout());
-        contentPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
+        JPanel panel = new JPanel(new BorderLayout(15, 15));
+        panel.setBackground(Theme.BACKGROUND_PRIMARY);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 0, 10, 0);
+        onlineToggle = new JToggleButton("Go Online");
 
-        // Title
-        JLabel titleLabel = new JLabel("Driver Dashboard");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Theme.TEXT_PRIMARY);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gbc.insets = new Insets(0, 0, 30, 0);
-        contentPanel.add(titleLabel, gbc);
+        requestModel = new DefaultListModel<>();
+        requestList = new JList<>(requestModel);
 
-        // Status Panel
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        statusPanel.setBackground(Theme.BACKGROUND_SECONDARY);
-        statusPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+        JScrollPane scroll = new JScrollPane(requestList);
+        scroll.setBorder(BorderFactory.createTitledBorder("Passenger Requests"));
 
-        statusLabel = new JLabel("Status: OFFLINE");
-        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        statusLabel.setForeground(Color.RED);
-        statusPanel.add(statusLabel);
+        mapPanel = new JXMapViewer();
+        mapPanel.setPreferredSize(new Dimension(100, 200));
+        mapPanel.setBorder(BorderFactory.createTitledBorder("Route Simulation"));
 
-        gbc.insets = new Insets(0, 0, 30, 0);
-        contentPanel.add(statusPanel, gbc);
+        panel.add(onlineToggle, BorderLayout.NORTH);
+        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(mapPanel, BorderLayout.SOUTH);
 
-        // Buttons Panel
-        JPanel buttonsPanel = new JPanel(new GridLayout(3, 1, 10, 10));
-        buttonsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        buttonsPanel.setPreferredSize(new Dimension(300, 200));
-
-        goOnlineButton = createDashboardButton("🚗 Go Online", new Color(46, 204, 113));
-        buttonsPanel.add(goOnlineButton);
-
-        viewRequestsButton = createDashboardButton("📱 View Ride Requests", Theme.COLOR_PRIMARY);
-        buttonsPanel.add(viewRequestsButton);
-
-        earningsButton = createDashboardButton("💰 View Earnings", new Color(241, 196, 15));
-        buttonsPanel.add(earningsButton);
-
-        contentPanel.add(buttonsPanel, gbc);
-
-        // Stats Panel
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
-        statsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        statsPanel.setPreferredSize(new Dimension(400, 100));
-
-        statsPanel.add(createStatCard("Total Rides", "0", Theme.COLOR_PRIMARY));
-        statsPanel.add(createStatCard("Rating", "0.0", new Color(241, 196, 15)));
-        statsPanel.add(createStatCard("Earnings", "$0.00", new Color(46, 204, 113)));
-
-        contentPanel.add(statsPanel, gbc);
-
-        add(contentPanel, BorderLayout.CENTER);
+        add(panel, BorderLayout.CENTER);
     }
 
-    private JButton createDashboardButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(300, 50));
-        return button;
+    private void initMapDefaults() {
+        mapPanel.setTileFactory(new DefaultTileFactory(new OSMTileFactoryInfo()));
+
+        // TEMP: Kathmandu
+        currentLocation = new GeoPosition(27.7172, 85.3240);
+
+        mapPanel.setAddressLocation(currentLocation);
+        mapPanel.setZoom(7);
     }
 
-    private JPanel createStatCard(String title, String value, Color color) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+    public void showEntities(GeoPosition driverPos, GeoPosition passengerPos) {
+        Set<Waypoint> waypoints = new HashSet<>();
 
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        titleLabel.setForeground(Theme.TEXT_SECONDARY);
+        waypoints.add(new DefaultWaypoint(driverPos));
+        waypoints.add(new DefaultWaypoint(passengerPos));
 
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        valueLabel.setForeground(color);
+        WaypointPainter<Waypoint> painter = new WaypointPainter<>();
+        painter.setWaypoints(waypoints);
 
-        card.add(titleLabel, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-
-        return card;
+        mapPanel.setOverlayPainter(painter);
+        mapPanel.repaint();
     }
 
-    public void toggleOnlineStatus() {
-        isOnline = !isOnline;
-        if (isOnline) {
-            statusLabel.setText("Status: ONLINE");
-            statusLabel.setForeground(new Color(46, 204, 113));
-            goOnlineButton.setText("🚗 Go Offline");
-            goOnlineButton.setBackground(new Color(231, 76, 60));
-        } else {
-            statusLabel.setText("Status: OFFLINE");
-            statusLabel.setForeground(Color.RED);
-            goOnlineButton.setText("🚗 Go Online");
-            goOnlineButton.setBackground(new Color(46, 204, 113));
-        }
+    public JToggleButton getOnlineToggle() {
+        return onlineToggle;
     }
 
-    public JButton getGoOnlineButton() {
-        return goOnlineButton;
+    public DefaultListModel<String> getRequestModel() {
+        return requestModel;
     }
 
-    public JButton getViewRequestsButton() {
-        return viewRequestsButton;
+    public JList<String> getRequestList() {
+        return requestList;
     }
 
-    public JButton getEarningsButton() {
-        return earningsButton;
+    public JXMapViewer getMapPanel() {
+        return mapPanel;
     }
 
-    public boolean isOnline() {
-        return isOnline;
+    public GeoPosition getCurrentLocation() {
+        return currentLocation;
+    }
+
+    public void setCurrentLocation(GeoPosition position) {
+        this.currentLocation = position;
+        mapPanel.setAddressLocation(position);
+    }
+
+    // compatibility since controller still uses "routePanel"
+    public JPanel getRoutePanel() {
+        return mapPanel;
     }
 }
-
-

@@ -9,7 +9,7 @@
 // import org.yamdut.model.Driver;
 
 // public class DriverDAOImpl implements DriverDAO {
-//     private DatabaseConfig db = new MySqlConfig();
+//     private DatabaseConfig db = (DatabaseConfig) new MySqlConfig();
 
 //     @Override
 //     public boolean createDriver(Driver driver) {

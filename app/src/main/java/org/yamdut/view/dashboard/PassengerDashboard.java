@@ -1,148 +1,109 @@
 package org.yamdut.view.dashboard;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+
+import org.jxmapviewer.viewer.GeoPosition;   // <-- ADD THIS
 import org.yamdut.utils.Theme;
 
 public class PassengerDashboard extends BaseDashboard {
+    private JTextField pickupField;
+    private JTextField destinationField;
     private JButton bookRideButton;
-    private JButton rideHistoryButton;
-    private JButton paymentMethodsButton;
-    private JButton showMapButton;
-    private JLabel statusLabel;
+    private JList<String> driverList;
+    private DefaultListModel<String> driverListModel;
+    private JPanel routePanel;
 
     public PassengerDashboard() {
         super();
-        initContent();
-        setWelcomeMessage("Welcome, Passenger!");
+        initContent(); // REQUIRED
     }
 
     @Override
     protected void initContent() {
-        JPanel contentPanel = new JPanel(new GridBagLayout());
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         contentPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridwidth = GridBagConstraints.REMAINDER;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 0, 10, 0);
+        // ── Top: Location inputs ───────────────────────────
+        JPanel inputPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        inputPanel.setBackground(Theme.BACKGROUND_PRIMARY);
 
-        // Title
-        JLabel titleLabel = new JLabel("Passenger Dashboard");
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        titleLabel.setForeground(Theme.TEXT_PRIMARY);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        gbc.insets = new Insets(0, 0, 30, 0);
-        contentPanel.add(titleLabel, gbc);
+        pickupField = new JTextField();
+        destinationField = new JTextField();
 
-        // Status Panel
-        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        statusPanel.setBackground(Theme.BACKGROUND_SECONDARY);
-        statusPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+        bookRideButton = new JButton("Book Ride");
 
-        statusLabel = new JLabel("Ready to book a ride!");
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        statusLabel.setForeground(Theme.TEXT_PRIMARY);
-        statusPanel.add(statusLabel);
+        inputPanel.add(new JLabel("Your Location"));
+        inputPanel.add(pickupField);
 
-        gbc.insets = new Insets(0, 0, 30, 0);
-        contentPanel.add(statusPanel, gbc);
+        inputPanel.add(new JLabel("Destination"));
+        inputPanel.add(destinationField);
 
-        // Buttons Panel
-        JPanel buttonsPanel = new JPanel(new GridLayout(4, 1, 10, 10));
-        buttonsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        buttonsPanel.setPreferredSize(new Dimension(300, 200));
+        inputPanel.add(new JLabel());
+        inputPanel.add(bookRideButton);
 
-        // Book Ride Button
-        bookRideButton = createDashboardButton("🚖 Book a Ride", Theme.COLOR_PRIMARY);
-        buttonsPanel.add(bookRideButton);
+        // ── Center: Driver list ───────────────────────────
+        driverListModel = new DefaultListModel<>();
+        driverList = new JList<>(driverListModel);
+        JScrollPane driverScroll = new JScrollPane(driverList);
+        driverScroll.setBorder(BorderFactory.createTitledBorder("Available Drivers"));
 
-        // Ride History Button
-        rideHistoryButton = createDashboardButton("📋 Ride History", new Color(52, 152, 219));
-        buttonsPanel.add(rideHistoryButton);
+        // ── Bottom: Route simulation panel ─────────────────
+        routePanel = new JPanel();
+        routePanel.setPreferredSize(new Dimension(100, 200));
+        routePanel.setBackground(Color.WHITE);
+        routePanel.setBorder(BorderFactory.createTitledBorder("Route Simulation"));
 
-        // Payment Methods Button
-        paymentMethodsButton = createDashboardButton("💳 Payment Methods", new Color(46, 204, 113));
-        buttonsPanel.add(paymentMethodsButton);
-
-        // Map Button
-        showMapButton = createDashboardButton("🗺️ View Map", new Color(155, 89, 182));
-        buttonsPanel.add(showMapButton);
-
-        contentPanel.add(buttonsPanel, gbc);
-
-        // Stats Panel
-        JPanel statsPanel = new JPanel(new GridLayout(1, 3, 10, 0));
-        statsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
-        statsPanel.setPreferredSize(new Dimension(400, 100));
-
-        statsPanel.add(createStatCard("Total Rides", "0", Theme.COLOR_PRIMARY));
-        statsPanel.add(createStatCard("5★ Ratings", "0.0", new Color(241, 196, 15)));
-        statsPanel.add(createStatCard("Wallet", "$0.00", new Color(46, 204, 113)));
-
-        contentPanel.add(statsPanel, gbc);
+        contentPanel.add(inputPanel, BorderLayout.NORTH);
+        contentPanel.add(driverScroll, BorderLayout.CENTER);
+        contentPanel.add(routePanel, BorderLayout.SOUTH);
 
         add(contentPanel, BorderLayout.CENTER);
     }
 
-    private JButton createDashboardButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(300, 50));
-        return button;
+    // ── Getters for controller ─────────────────────────────
+    public JTextField getPickupField() {
+        return pickupField;
     }
 
-    private JPanel createStatCard(String title, String value, Color color) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        titleLabel.setForeground(Theme.TEXT_SECONDARY);
-
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        valueLabel.setForeground(color);
-
-        card.add(titleLabel, BorderLayout.NORTH);
-        card.add(valueLabel, BorderLayout.CENTER);
-
-        return card;
+    public JTextField getDestinationField() {
+        return destinationField;
     }
 
     public JButton getBookRideButton() {
         return bookRideButton;
     }
 
-    public JButton getRideHistoryButton() {
-        return rideHistoryButton;
+    public JList<String> getDriverList() {
+        return driverList;
     }
 
-    public JButton getPaymentMethodsButton() {
-        return paymentMethodsButton;
+    public DefaultListModel<String> getDriverListModel() {
+        return driverListModel;
     }
 
-    public JButton getShowMapButton() {
-        return showMapButton;
+    public JPanel getRoutePanel() {
+        return routePanel;
     }
 
-    public void updateStatus(String status) {
-        statusLabel.setText(status);
+    // ── TEMP COORDINATE PROVIDERS (will replace with geocoding later) ──
+    public GeoPosition getPickupLocation() {
+        return new GeoPosition(27.7172, 85.3240);
+    }
+
+    public GeoPosition getDropoffLocation() {
+        return new GeoPosition(27.6730, 85.3250);
     }
 }
-
-
