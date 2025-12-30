@@ -21,6 +21,10 @@ import org.yamdut.view.signup.SignUpScreen;
 public class App {
 
     public static void main(String[] args) {
+        // Fix for HiDPI scaling on Linux/Arch
+        System.setProperty("sun.java2d.uiScale.enabled", "true");
+        System.setProperty("sun.java2d.dpiaware", "true");
+
         // JavaFX Platform will be initialized automatically when first JFXPanel is created
         // No need to call Platform.startup() explicitly
         
