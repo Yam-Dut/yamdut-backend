@@ -25,13 +25,17 @@ public class App {
         System.setProperty("sun.java2d.uiScale.enabled", "true");
         System.setProperty("sun.java2d.dpiaware", "true");
 
-        // JavaFX Platform will be initialized automatically when first JFXPanel is created
+        // JavaFX Platform will be initialized automatically when first JFXPanel is
+        // created
         // No need to call Platform.startup() explicitly
-        
+
+        // Initialize Database
+        org.yamdut.database.DatabaseInitializer.initialize();
+
         SwingUtilities.invokeLater(() -> {
 
             // ───────────────────────── Frame ─────────────────────────
-            JFrame frame = new JFrame("Yamdut - Ride Sharing");
+            JFrame frame = new JFrame("यमदूत - Ride Sharing");
             frame.setSize(1200, 800);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLocationRelativeTo(null);
@@ -40,15 +44,13 @@ public class App {
 
             // ───────────────────────── AUTH: LOGIN ─────────────────────────
             LoginScreen loginScreenTemp = new LoginScreen(null);
-            LoginController loginController =
-                    new LoginController(loginScreenTemp, screenManager);
+            LoginController loginController = new LoginController(loginScreenTemp, screenManager);
 
             LoginScreen loginScreen = new LoginScreen(loginController);
 
             // ───────────────────────── AUTH: SIGNUP ─────────────────────────
             SignUpScreen signUpScreenTemp = new SignUpScreen(null);
-            SignupController signupController =
-                    new SignupController(signUpScreenTemp, screenManager);
+            SignupController signupController = new SignupController(signUpScreenTemp, screenManager);
 
             SignUpScreen signUpScreen = new SignUpScreen(signupController);
 

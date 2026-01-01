@@ -28,4 +28,5 @@ app/src/main/resources/web/token.js
 .vscode
 # Ignore MySQL config file
 app/src/main/java/org/yamdut/database/MySqlConfig.java
+app/src/main/java/org/yamdut/database/DatabaseInitializer.java
 

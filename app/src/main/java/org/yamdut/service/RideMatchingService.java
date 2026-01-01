@@ -28,13 +28,13 @@ public class RideMatchingService {
 
     public void submitRide(RideRequest request) {
         String sql = """
-            INSERT INTO ride_requests
-            (passenger_id, passenger_name, pickup, dropoff, status)
-            VALUES (?, ?, ?, ?, 'PENDING')
-        """;
+                    INSERT INTO rides
+                    (passenger_id, passenger_name, pickup, dropoff, status)
+                    VALUES (?, ?, ?, ?, 'PENDING')
+                """;
 
         try (Connection conn = MySqlConfig.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, request.getPassengerId());
             ps.setString(2, request.getPassengerName());
@@ -50,26 +50,26 @@ public class RideMatchingService {
             throw new RuntimeException("Failed to submit ride", e);
         }
     }
+
     public List<RideRequest> getPendingRequests() {
         String sql = """
-            SELECT * FROM ride_requests
-            WHERE status = 'PENDING'
-            ORDER BY created_at ASC
-        """;
+                    SELECT * FROM rides
+                    WHERE status = 'PENDING'
+                    ORDER BY created_at ASC
+                """;
 
         List<RideRequest> list = new ArrayList<>();
 
         try (Connection conn = MySqlConfig.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 RideRequest req = new RideRequest(
-                    rs.getInt("passenger_id"),
-                    rs.getString("passenger_name"),
-                    rs.getString("pickup"),
-                    rs.getString("dropoff")
-                );
+                        rs.getInt("passenger_id"),
+                        rs.getString("passenger_name"),
+                        rs.getString("pickup"),
+                        rs.getString("dropoff"));
                 req.setId(rs.getInt("id"));
                 list.add(req);
             }
@@ -81,14 +81,13 @@ public class RideMatchingService {
         System.out.println("[RideMatching] DB pending rides: " + list.size());
         return list;
     }
- 
 
     /**
      * Very naive matching for now
      * returns all online drivers
      * Later: distance, rating, ETA
      * Note: Does NOT submit ride - that should be done separately
-     *  **/
+     **/
     public List<Driver> findAvailableDrivers(RideRequest request) {
         // Don't submit here - ride should already be submitted
         return new ArrayList<>(onlineDrivers);
@@ -105,19 +104,20 @@ public class RideMatchingService {
         onlineDrivers.removeIf(d -> d.getId() == driver.getId());
         System.out.println("[RideMatching] Driver went offline: " + driver.getName());
     }
+
     public void assignRide(int rideId, int driverId, String driverName) {
         // Calculate random fare between $5 and $25
         double fare = 5.0 + (Math.random() * 20.0);
         fare = Math.round(fare * 100.0) / 100.0; // Round to 2 decimals
 
         String sql = """
-            UPDATE ride_requests
-            SET status = 'ACCEPTED', driver_id = ?, driver_name = ?, fare = ?
-            WHERE id = ?
-        """;
+                    UPDATE rides
+                    SET status = 'ACCEPTED', driver_id = ?, driver_name = ?, fare = ?
+                    WHERE id = ?
+                """;
 
         try (Connection conn = MySqlConfig.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, driverId);
             ps.setString(2, driverName);
@@ -133,14 +133,14 @@ public class RideMatchingService {
     }
 
     public void startRide(int rideId) {
-        String sql = "UPDATE ride_requests SET status = 'IN_PROGRESS' WHERE id = ?";
+        String sql = "UPDATE rides SET status = 'IN_PROGRESS' WHERE id = ?";
         try (Connection conn = MySqlConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, rideId);
             ps.executeUpdate();
             System.out.println("[RideMatching] Ride started: " + rideId);
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -148,13 +148,13 @@ public class RideMatchingService {
 
     public void cancelRide(int rideId) {
         String sql = """
-            UPDATE ride_requests
-            SET status = 'CANCELLED'
-            WHERE id = ?
-        """;
+                    UPDATE rides
+                    SET status = 'CANCELLED'
+                    WHERE id = ?
+                """;
 
         try (Connection conn = MySqlConfig.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, rideId);
             ps.executeUpdate();
@@ -165,26 +165,25 @@ public class RideMatchingService {
             throw new RuntimeException("Failed to cancel ride", e);
         }
     }
-    
+
     public int getAllRequestsCount() {
         // Simple count of pending requests for now
-        return getPendingRequests().size(); 
+        return getPendingRequests().size();
     }
 
     public RideRequest getRideStatus(int rideId) {
-        String sql = "SELECT * FROM ride_requests WHERE id = ?";
+        String sql = "SELECT * FROM rides WHERE id = ?";
         try (Connection conn = MySqlConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, rideId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     RideRequest req = new RideRequest(
-                        rs.getInt("passenger_id"),
-                        rs.getString("passenger_name"),
-                        rs.getString("pickup"),
-                        rs.getString("dropoff")
-                    );
+                            rs.getInt("passenger_id"),
+                            rs.getString("passenger_name"),
+                            rs.getString("pickup"),
+                            rs.getString("dropoff"));
                     req.setId(rs.getInt("id"));
                     req.setStatus(rs.getString("status"));
                     req.setDriverId(rs.getInt("driver_id"));
@@ -202,5 +201,3 @@ public class RideMatchingService {
         return null;
     }
 }
-
-

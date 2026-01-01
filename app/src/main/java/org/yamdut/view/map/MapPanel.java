@@ -1,278 +1,172 @@
 package org.yamdut.view.map;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.net.URL;
+import java.awt.Color;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
-import javax.swing.Timer;
+import javax.swing.SwingUtilities;
 
+import org.openstreetmap.gui.jmapviewer.Coordinate;
+import org.openstreetmap.gui.jmapviewer.JMapViewer;
+import org.openstreetmap.gui.jmapviewer.MapMarkerDot;
+import org.openstreetmap.gui.jmapviewer.MapPolygonImpl;
+import org.openstreetmap.gui.jmapviewer.interfaces.ICoordinate;
+import org.openstreetmap.gui.jmapviewer.interfaces.MapPolygon;
 import org.yamdut.model.RideRequest;
 import org.yamdut.model.Role;
 
-import javafx.application.Platform;
-import javafx.concurrent.Worker;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import netscape.javascript.JSObject;
-
 public class MapPanel extends JPanel {
 
-    private final JFXPanel fxPanel;
-    private WebEngine engine;
-    private WebView webView;
+    private JMapViewer mapViewer;
     private final Role role;
-    private boolean mapInitialized = false;
+    private final Map<String, MapMarkerDot> entityMarkers = new HashMap<>(); // ID -> Marker
+    private MapPolygon currentRoute;
 
     public MapPanel(Role role) {
         this.role = role;
         setLayout(new BorderLayout());
 
-        fxPanel = new JFXPanel();
-        // Don't set preferred size - let it fill the panel
-        add(fxPanel, BorderLayout.CENTER);
+        // CRITICAL: Set User-Agent for OSM
+        System.setProperty("http.agent", "YamDut/1.0");
 
-        initFX();
+        mapViewer = new JMapViewer();
 
-        addComponentListener(new ComponentAdapter() {
+        // Default position (Kathmandu)
+        mapViewer.setDisplayPosition(new Coordinate(27.7172, 85.3240), 13);
+
+        add(mapViewer, BorderLayout.CENTER);
+
+        // Add click listener
+        mapViewer.addMouseListener(new MouseAdapter() {
             @Override
-            public void componentResized(ComponentEvent e) {
-                // Update scene size when panel resizes
-                Platform.runLater(() -> {
-                    if (fxPanel != null && fxPanel.getScene() != null) {
-                        int w = Math.max(400, getWidth());
-                        int h = Math.max(300, getHeight());
-                        Scene scene = fxPanel.getScene();
-                        if (scene != null) {
-                            scene.getWindow().setWidth(w);
-                            scene.getWindow().setHeight(h);
-                        }
+            public void mouseClicked(MouseEvent e) {
+                // Double click handling for setting destination
+                if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+                    ICoordinate coord = mapViewer.getPosition(e.getPoint());
+                    if (mapClickListener != null) {
+                        mapClickListener.onDestinationSelected(coord.getLat(), coord.getLon());
                     }
-                });
-                // Also resize the map
-                scheduleResize(100);
+                }
+                // Single click
+                else if (e.getButton() == MouseEvent.BUTTON1 && mapClickListener != null) {
+                    ICoordinate coord = mapViewer.getPosition(e.getPoint());
+                    mapClickListener.onMapClick(coord.getLat(), coord.getLon());
+                }
             }
         });
-    }
-
-    private void initFX() {
-        Platform.runLater(() -> {
-            try {
-                webView = new WebView();
-                engine = webView.getEngine();
-
-                // Enable JavaScript
-                engine.setJavaScriptEnabled(true);
-                
-                // Optimize WebView settings
-                webView.setCache(true);
-                webView.setContextMenuEnabled(false);
-                
-                // Set user agent for better tile server compatibility
-                engine.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-                
-                // Enable local storage for tile caching
-                try {
-                    engine.executeScript("if (typeof(Storage) !== 'undefined') { localStorage.setItem('test', 'ok'); }");
-                } catch (Exception e) {
-                    System.out.println("[MapPanel] LocalStorage test: " + e.getMessage());
-                }
-
-                // JS alert -> console
-                engine.setOnAlert(e -> System.out.println("[JS Alert] " + e.getData()));
-
-                // Handle console messages
-                engine.setOnError((e) -> {
-                    System.err.println("[WebView Error] " + e.getMessage());
-                });
-
-                // On HTML load, initialize map
-                engine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
-                    if (newState == Worker.State.SUCCEEDED) {
-                        System.out.println("[MapPanel] HTML loaded successfully");
-                        
-                        // Register Java connector for JS -> Java communication
-                        try {
-                            JSObject window = (JSObject) engine.executeScript("window");
-                            JavaConnector connector = new JavaConnector();
-                            window.setMember("java", connector);
-                            System.out.println("[MapPanel] Java connector registered");
-                        } catch (Exception e) {
-                            System.err.println("[MapPanel] Error registering Java connector: " + e.getMessage());
-                        }
-                        
-                        // Use a timer instead of blocking sleep for better performance
-                        Timer initTimer = new Timer(300, e -> {
-                            Platform.runLater(() -> {
-                                String roleStr = role.name().toLowerCase();
-                                System.out.println("[MapPanel] Initializing map with role: " + roleStr);
-                                
-                                // Initialize the map with proper error handling
-                                String initScript = 
-                                    "(function() {" +
-                                    "  if (typeof YamdutMap !== 'undefined') {" +
-                                    "    try {" +
-                                    "      YamdutMap.init('" + roleStr + "');" +
-                                    "      setTimeout(function() { " +
-                                    "        if (YamdutMap && YamdutMap.resize) YamdutMap.resize();" +
-                                    "      }, 100);" +
-                                    "      return true;" +
-                                    "    } catch(err) {" +
-                                    "      console.error('Map init error:', err);" +
-                                    "      return false;" +
-                                    "    }" +
-                                    "  } else {" +
-                                    "    console.error('YamdutMap not found');" +
-                                    "    return false;" +
-                                    "  }" +
-                                    "})()";
-                                
-                                try {
-                                    Object result = engine.executeScript(initScript);
-                                    if (result != null && result.equals(true)) {
-                                        mapInitialized = true;
-                                        System.out.println("[MapPanel] Map initialization successful");
-                                        
-                                        // Force resize after initialization with multiple attempts
-                                        scheduleResize(200);
-                                        scheduleResize(500);
-                                        scheduleResize(1000);
-                                    } else {
-                                        System.err.println("[MapPanel] Map initialization returned false");
-                                        // Retry once
-                                        Timer retryTimer = new Timer(500, retry -> {
-                                            Platform.runLater(() -> {
-                                                try {
-                                                    engine.executeScript(initScript);
-                                                    mapInitialized = true;
-                                                    scheduleResize(300);
-                                                } catch (Exception ex) {
-                                                    System.err.println("[MapPanel] Retry failed: " + ex.getMessage());
-                                                }
-                                            });
-                                        });
-                                        retryTimer.setRepeats(false);
-                                        retryTimer.start();
-                                    }
-                                } catch (Exception ex) {
-                                    System.err.println("[MapPanel] Error executing init script: " + ex.getMessage());
-                                    ex.printStackTrace();
-                                }
-                            });
-                        });
-                        initTimer.setRepeats(false);
-                        initTimer.start();
-                    } else if (newState == Worker.State.FAILED) {
-                        System.err.println("[MapPanel] Failed to load HTML: " + 
-                            engine.getLoadWorker().getException());
-                    }
-                });
-
-                // Load the HTML
-                URL url = getClass().getResource("/map/index.html");
-                if (url == null) {
-                    throw new IllegalStateException("Map HTML not found at /map/index.html");
-                }
-                
-                String htmlUrl = url.toExternalForm();
-                System.out.println("[MapPanel] Loading HTML from: " + htmlUrl);
-                engine.load(htmlUrl);
-
-                // Set scene with proper sizing - get actual panel size
-                int initialWidth = Math.max(600, getWidth() > 0 ? getWidth() : 800);
-                int initialHeight = Math.max(400, getHeight() > 0 ? getHeight() : 600);
-                
-                Scene scene = new Scene(webView, initialWidth, initialHeight);
-                fxPanel.setScene(scene);
-                
-                // Make WebView fill the scene
-                webView.prefWidthProperty().bind(scene.widthProperty());
-                webView.prefHeightProperty().bind(scene.heightProperty());
-                
-                // Update scene size when panel is resized - use existing listener
-                // The componentResized in constructor will handle this
-                
-            } catch (Exception e) {
-                System.err.println("[MapPanel] Error initializing WebView: " + e.getMessage());
-                e.printStackTrace();
-            }
-        });
-    }
-
-    private void scheduleResize(int delayMs) {
-        Timer timer = new Timer(delayMs, e -> {
-            Platform.runLater(() -> {
-                if (engine != null && mapInitialized) {
-                    try {
-                        String resizeScript = 
-                            "if (typeof YamdutMap !== 'undefined' && YamdutMap.resize) {" +
-                            "  YamdutMap.resize();" +
-                            "} else if (window.map && window.map.invalidateSize) {" +
-                            "  window.map.invalidateSize(true);" +
-                            "}";
-                        engine.executeScript(resizeScript);
-                    } catch (Exception ex) {
-                        System.err.println("[MapPanel] Error resizing map: " + ex.getMessage());
-                    }
-                }
-            });
-        });
-        timer.setRepeats(false);
-        timer.start();
     }
 
     // Map API
     public void setCenter(double lat, double lon, int zoom) {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript("if (window.YamdutMap) YamdutMap.setCenter(" + lat + "," + lon + "," + zoom + ");");
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null) {
+                mapViewer.setDisplayPosition(new Coordinate(lat, lon), zoom);
             }
         });
     }
 
     public void showEntities(String json) {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript("if (window.YamdutMap) YamdutMap.showEntities(" + json + ");");
+        // Ignored in favor of direct updateEntityPosition calls from controller
+        // System.out.println("[MapPanel] showEntities called (JSON parsing skipped in
+        // Swing impl)");
+    }
+
+    /**
+     * Updates an entity position on the map with specific color coding.
+     * 
+     * @param id   Unique ID of the entity
+     * @param lat  Latitude
+     * @param lon  Longitude
+     * @param type "PASSENGER" (Blue) or "DRIVER" (Red)
+     */
+    public void updateEntityPosition(String id, double lat, double lon, String type) {
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null) {
+                MapMarkerDot marker = entityMarkers.get(id);
+                Coordinate newCoord = new Coordinate(lat, lon);
+                Color color = "PASSENGER".equals(type) ? Color.BLUE : Color.RED;
+
+                if (marker != null) {
+                    mapViewer.removeMapMarker(marker);
+                }
+
+                marker = new MapMarkerDot(color, newCoord.getLat(), newCoord.getLon());
+                marker.setBackColor(color);
+                entityMarkers.put(id, marker);
+                mapViewer.addMapMarker(marker);
             }
         });
     }
 
+    // Overload for backward compatibility (defaults to RED/Driver if unknown, but
+    // useful for generic updates)
     public void updateEntityPosition(String id, double lat, double lon) {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript(
-                    "if (window.YamdutMap) YamdutMap.updateEntityPosition('" + id + "'," + lat + "," + lon + ");"
-                );
-            }
-        });
+        updateEntityPosition(id, lat, lon, "DRIVER");
     }
 
     public void setRoute(double slat, double slon, double elat, double elon) {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript(
-                    "if (window.YamdutMap) YamdutMap.setRoute([" + slat + "," + slon + "],[" + elat + "," + elon + "]);"
-                );
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null) {
+                if (currentRoute != null) {
+                    mapViewer.removeMapPolygon(currentRoute);
+                }
+
+                List<Coordinate> routePoints = new ArrayList<>();
+                routePoints.add(new Coordinate(slat, slon));
+                routePoints.add(new Coordinate(elat, elon)); // Direct line for now
+
+                // Blue line, thick
+                currentRoute = new MapPolygonImpl(routePoints);
+                // Note: JMapViewer defaults for polygon styles might vary, customized logic
+                // usually needed for lines
+                // But MapPolygonImpl is often used for lines if points are < 3 or style set
+                // correctly.
+                // Creating a custom style for the route line:
+                // Since MapPolygonImpl customization is limited without extending, we rely on
+                // default or simple impl.
+                // Ideally, we'd use a MapOverlay or similar, but polygon is standard for paths
+                // in simple usage.
+
+                mapViewer.addMapPolygon(currentRoute);
+
+                // Hack: MapPolygonImpl default might be filled. We want a line.
+                // JMapViewer 2.x often treats polygons as filled areas.
+                // We might need a custom MapPolygon or just rely on it being a "thin" polygon
+                // if JMapViewer supports paths.
+
+                // NOTE: Standard JMapViewer MapPolygonImpl draws a polygon.
+                // Functionally for a route (A to B), it might look like a filled shape if not
+                // handled carefully.
+                // However, with 2 points, it SHOULD render as a line in many Graphics
+                // implementations.
+                // If this fails to render a line, we might need a custom MapPolygon.
             }
         });
     }
 
     public void clearRoute() {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript("if (window.YamdutMap) YamdutMap.clearRoute();");
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null && currentRoute != null) {
+                mapViewer.removeMapPolygon(currentRoute);
+                currentRoute = null;
             }
         });
     }
 
     public void clearMap() {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                engine.executeScript("if (window.YamdutMap) YamdutMap.clearMap();");
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null) {
+                mapViewer.removeAllMapMarkers();
+                mapViewer.removeAllMapPolygons();
+                entityMarkers.clear();
+                currentRoute = null;
             }
         });
     }
@@ -280,55 +174,25 @@ public class MapPanel extends JPanel {
     public void showRide(RideRequest request) {
         System.out.println("[MAP] Showing ride: " + request);
     }
-    
-    /**
-     * Force map to refresh and resize - useful when panel becomes visible
-     */
+
     public void refresh() {
-        Platform.runLater(() -> {
-            if (engine != null && mapInitialized) {
-                scheduleResize(100);
-                scheduleResize(300);
-            } else if (engine != null) {
-                // Try to reinitialize if not initialized
-                String roleStr = role.name().toLowerCase();
-                String initScript = 
-                    "if (typeof YamdutMap !== 'undefined') {" +
-                    "  YamdutMap.init('" + roleStr + "');" +
-                    "  setTimeout(function() { if (YamdutMap.resize) YamdutMap.resize(); }, 200);" +
-                    "}";
-                try {
-                    engine.executeScript(initScript);
-                    mapInitialized = true;
-                } catch (Exception e) {
-                    System.err.println("[MapPanel] Error refreshing map: " + e.getMessage());
-                }
+        SwingUtilities.invokeLater(() -> {
+            if (mapViewer != null) {
+                mapViewer.repaint();
             }
         });
     }
 
-    // JS -> Java connector
-    public class JavaConnector {
-        public void recieveMapClick(double lat, double lon) {
-            System.out.println("[MAP CLICK] " + lat + ", " + lon);
-            // Notify controller if available
-            if (mapClickListener != null) {
-                mapClickListener.onMapClick(lat, lon);
-            }
-        }
-
-        public void logDebug(String msg) {
-            System.out.println("[MAP DEBUG] " + msg);
-        }
-    }
-    
-    // Map click listener interface
+    // Listener interface
     public interface MapClickListener {
         void onMapClick(double lat, double lon);
+
+        default void onDestinationSelected(double lat, double lon) {
+        }
     }
-    
+
     private MapClickListener mapClickListener;
-    
+
     public void setMapClickListener(MapClickListener listener) {
         this.mapClickListener = listener;
     }
