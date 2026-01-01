@@ -18,7 +18,7 @@ public class SignupController {
     private final OtpService otpService;
     private final EmailService emailService;
 
-    public SignupController (SignUpScreen view, ScreenManager screenManager) {
+    public SignupController(SignUpScreen view, ScreenManager screenManager) {
         this.view = view;
         this.screenManager = screenManager;
         this.userService = new UserService();
@@ -27,23 +27,23 @@ public class SignupController {
     }
 
     public void signup(String fullName, String email, String password, String phone, boolean isDriver) {
-        SwingWorker<User, Void> worker = new SwingWorker<User,Void>() {
+        SwingWorker<User, Void> worker = new SwingWorker<User, Void>() {
             private String errorMessage;
 
             @Override
             protected User doInBackground() {
                 try {
                     User existing = userService.findByEmail(email);
-                    
+
                     if (existing != null && existing.getVerified()) {
                         errorMessage = "Account with this email already exists.";
                         return null;
                     }
                     User savedUser = userService.registerBasicUser(fullName, email, password, phone, isDriver);
 
-                    //generate otp
-                    String otp = otpService.generateOtp(email);
-                    //send otp to the email;
+                    // generate otp
+                    String otp = otpService.generateOtp(email, org.yamdut.model.OtpPurpose.SIGNUP);
+                    // send otp to the email;
                     emailService.sendOtpEmail(email, otp);
 
                     return savedUser;
@@ -64,7 +64,7 @@ public class SignupController {
                 try {
                     User user = get();
                     if (user != null && errorMessage == null) {
-                       screenManager.showOtpScreen(user, true); 
+                        screenManager.showOtpScreen(user, true);
                     } else {
                         view.showError(errorMessage != null ? errorMessage : "Signup Failed!");
                     }
