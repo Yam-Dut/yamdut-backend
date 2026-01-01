@@ -45,7 +45,7 @@ public class AuthService {
      *         auth fails
      */
     public User login(String identifier, String rawPassword) {
-        User user = userDAO.getUserByEmail(identifier);
+        User user = userDAO.findByLogin(identifier);
         if (user == null) {
             return null;
         }

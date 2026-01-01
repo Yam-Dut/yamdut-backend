@@ -1,4 +1,5 @@
 package org.yamdut.view.dashboard;
+
 //preeti patch
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -14,6 +15,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
@@ -27,7 +30,9 @@ public class AdminDashboard extends BaseDashboard {
     private JButton systemSettingsButton;
     private JButton refreshButton;
     private JTextArea activityTextArea;
-    
+    private JTable usersTable;
+    private DefaultTableModel usersTableModel;
+
     // Stat card value labels for refreshing
     private JLabel totalUsersLabel;
     private JLabel activeDriversLabel;
@@ -65,7 +70,8 @@ public class AdminDashboard extends BaseDashboard {
         statsPanel.setPreferredSize(new Dimension(600, 100));
 
         statsPanel.add(createStatCard("Total Users", "0", Theme.COLOR_PRIMARY, totalUsersLabel = new JLabel()));
-        statsPanel.add(createStatCard("Active Drivers", "0", new Color(46, 204, 113), activeDriversLabel = new JLabel()));
+        statsPanel
+                .add(createStatCard("Active Drivers", "0", new Color(46, 204, 113), activeDriversLabel = new JLabel()));
         statsPanel.add(createStatCard("Today's Rides", "0", new Color(52, 152, 219), todaysRidesLabel = new JLabel()));
         statsPanel.add(createStatCard("Revenue", "$0.00", new Color(241, 196, 15), revenueLabel = new JLabel()));
 
@@ -112,8 +118,7 @@ public class AdminDashboard extends BaseDashboard {
         activityPanel.setBackground(Color.WHITE);
         activityPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)));
         activityPanel.setPreferredSize(new Dimension(600, 150));
 
         JLabel activityLabel = new JLabel("Recent Activity");
@@ -135,6 +140,31 @@ public class AdminDashboard extends BaseDashboard {
         gbc.insets = new Insets(30, 0, 0, 0);
         contentPanel.add(activityPanel, gbc);
 
+        // Users Table
+        JLabel usersLabel = new JLabel("All Users");
+        usersLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        usersLabel.setForeground(Theme.TEXT_PRIMARY);
+        gbc.insets = new Insets(30, 0, 10, 0);
+        contentPanel.add(usersLabel, gbc);
+
+        String[] cols = { "ID", "Full Name", "Email", "Username", "Role", "Verified", "Created At" };
+        usersTableModel = new DefaultTableModel(cols, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+        };
+        usersTable = new JTable(usersTableModel);
+        usersTable.setRowHeight(24);
+        usersTable.setBackground(Color.WHITE);
+
+        JScrollPane usersScroll = new JScrollPane(usersTable);
+        usersScroll.setPreferredSize(new Dimension(800, 200));
+        usersScroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1));
+
+        gbc.insets = new Insets(0, 0, 0, 0);
+        contentPanel.add(usersScroll, gbc);
+
         add(contentPanel, BorderLayout.CENTER);
     }
 
@@ -155,8 +185,7 @@ public class AdminDashboard extends BaseDashboard {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1),
-                BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)));
 
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -207,11 +236,17 @@ public class AdminDashboard extends BaseDashboard {
      * Update stat card values.
      */
     public void updateStats(int totalUsers, int activeDrivers, int todaysRides, double revenue) {
-        if (totalUsersLabel != null) totalUsersLabel.setText(String.valueOf(totalUsers));
-        if (activeDriversLabel != null) activeDriversLabel.setText(String.valueOf(activeDrivers));
-        if (todaysRidesLabel != null) todaysRidesLabel.setText(String.valueOf(todaysRides));
-        if (revenueLabel != null) revenueLabel.setText(String.format("$%.2f", revenue));
+        if (totalUsersLabel != null)
+            totalUsersLabel.setText(String.valueOf(totalUsers));
+        if (activeDriversLabel != null)
+            activeDriversLabel.setText(String.valueOf(activeDrivers));
+        if (todaysRidesLabel != null)
+            todaysRidesLabel.setText(String.valueOf(todaysRides));
+        if (revenueLabel != null)
+            revenueLabel.setText(String.format("$%.2f", revenue));
+    }
+
+    public DefaultTableModel getUsersTableModel() {
+        return usersTableModel;
     }
 }
-
-
