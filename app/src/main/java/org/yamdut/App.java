@@ -11,6 +11,7 @@ import org.yamdut.controller.PassengerDashboardController;
 import org.yamdut.controller.SignupController;
 import org.yamdut.core.ScreenManager;
 import org.yamdut.model.Role;
+import org.yamdut.service.RideMatchingService;
 import org.yamdut.utils.UserSession;
 import org.yamdut.view.dashboard.AdminDashboard;
 import org.yamdut.view.dashboard.DriverDashboard;
@@ -25,9 +26,12 @@ public class App {
         System.setProperty("sun.java2d.uiScale.enabled", "true");
         System.setProperty("sun.java2d.dpiaware", "true");
 
-        // JavaFX Platform will be initialized automatically when first JFXPanel is created
-        // No need to call Platform.startup() explicitly
-        
+        // JavaFX Platform will be initialized automatically when first JFXPanel is
+        // created
+        // No need to call Platform.startup()
+
+        // Cleanup stale requests logic now handled in RideMatchingService.submitRide
+
         SwingUtilities.invokeLater(() -> {
 
             // ───────────────────────── Frame ─────────────────────────
@@ -40,15 +44,13 @@ public class App {
 
             // ───────────────────────── AUTH: LOGIN ─────────────────────────
             LoginScreen loginScreenTemp = new LoginScreen(null);
-            LoginController loginController =
-                    new LoginController(loginScreenTemp, screenManager);
+            LoginController loginController = new LoginController(loginScreenTemp, screenManager);
 
             LoginScreen loginScreen = new LoginScreen(loginController);
 
             // ───────────────────────── AUTH: SIGNUP ─────────────────────────
             SignUpScreen signUpScreenTemp = new SignUpScreen(null);
-            SignupController signupController =
-                    new SignupController(signUpScreenTemp, screenManager);
+            SignupController signupController = new SignupController(signUpScreenTemp, screenManager);
 
             SignUpScreen signUpScreen = new SignUpScreen(signupController);
 
