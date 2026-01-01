@@ -1,6 +1,5 @@
 package org.yamdut.core;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ import org.yamdut.view.signup.OtpScreen;
 public class ScreenManager {
     private final JFrame frame;
     private final Map<String, JPanel> screens = new HashMap<>();
-    
+
     public ScreenManager(JFrame frame) {
         this.frame = frame;
     }
@@ -40,13 +39,24 @@ public class ScreenManager {
         frame.repaint();
     }
 
-    //centralized role based navigation
+    // centralized role based navigation
 
     public void showDashBoardForRole(Role role) {
         switch (role) {
             case PASSENGER:
                 PassengerDashboard passengerDashboard = new PassengerDashboard();
                 new PassengerDashboardController(passengerDashboard); // controller instance
+
+                // Wire logout
+                passengerDashboard.getLogoutButton().addActionListener(e -> {
+                    org.yamdut.utils.UserSession.getInstance().logout();
+                    JPanel loginPanel = screens.get("LOGIN");
+                    if (loginPanel instanceof org.yamdut.view.login.LoginScreen) {
+                        ((org.yamdut.view.login.LoginScreen) loginPanel).reset();
+                    }
+                    this.show("LOGIN");
+                });
+
                 this.register("PASSENGER_DASHBOARD", passengerDashboard);
                 this.show("PASSENGER_DASHBOARD");
                 break;
@@ -54,13 +64,36 @@ public class ScreenManager {
             case DRIVER:
                 DriverDashboard driverDashboard = new DriverDashboard();
                 new DriverDashboardController(driverDashboard);
+
+                // Wire logout
+                driverDashboard.getLogoutButton().addActionListener(e -> {
+                    org.yamdut.utils.UserSession.getInstance().logout();
+                    JPanel loginPanel = screens.get("LOGIN");
+                    if (loginPanel instanceof org.yamdut.view.login.LoginScreen) {
+                        ((org.yamdut.view.login.LoginScreen) loginPanel).reset();
+                    }
+                    this.show("LOGIN");
+                });
+
                 this.register("DRIVER_DASHBOARD", driverDashboard);
                 this.show("DRIVER_DASHBOARD");
                 break;
 
             case ADMIN:
                 AdminDashboard adminDashboard = new AdminDashboard();
-                // AdminDashboardController adminController = new AdminDashboardController(adminDashboard);
+                // AdminDashboardController adminController = new
+                // AdminDashboardController(adminDashboard);
+
+                // Wire logout
+                adminDashboard.getLogoutButton().addActionListener(e -> {
+                    org.yamdut.utils.UserSession.getInstance().logout();
+                    JPanel loginPanel = screens.get("LOGIN");
+                    if (loginPanel instanceof org.yamdut.view.login.LoginScreen) {
+                        ((org.yamdut.view.login.LoginScreen) loginPanel).reset();
+                    }
+                    this.show("LOGIN");
+                });
+
                 this.register("ADMIN_DASHBOARD", adminDashboard);
                 this.show("ADMIN_DASHBOARD");
                 break;
@@ -69,6 +102,7 @@ public class ScreenManager {
                 throw new IllegalStateException("Unknown role: " + role);
         }
     }
+
     public void showOtpScreen(User user, boolean isSignup) {
         OtpScreen otpScreen = new OtpScreen(user, isSignup, this);
         screens.put("OTP", otpScreen);

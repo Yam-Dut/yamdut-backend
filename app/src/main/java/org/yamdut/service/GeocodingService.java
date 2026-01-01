@@ -3,6 +3,7 @@ package org.yamdut.service;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +31,8 @@ public class GeocodingService {
             String urlString = NOMINATIM_URL + "?q=" + encodedLocation + 
                               "&format=json&limit=1&addressdetails=1";
             
-            URL url = new URL(urlString);
+            URI uri = new URI(urlString);
+            URL url = uri.toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("User-Agent", "YamdutApp/1.0");

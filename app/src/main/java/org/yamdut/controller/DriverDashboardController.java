@@ -6,7 +6,6 @@ import javax.swing.Timer;
 
 import org.yamdut.model.Driver;
 import org.yamdut.model.RideRequest;
-import org.yamdut.model.Driver;
 import org.yamdut.model.User;
 import org.yamdut.service.RideMatchingService;
 import org.yamdut.service.RideSimulationService;
@@ -21,41 +20,47 @@ public class DriverDashboardController {
     private final Driver currentDriver;
     private RideRequest currentRide = null;
     private Timer refreshTimer;
-    private boolean rideStarted = false;
+    private boolean driverAtPickup = false;
+    private boolean tripStarted = false;
+
+    // Driver's simulated current location
+    private double driverLat = 27.7172; // Default Kathmandu
+    private double driverLon = 85.3240;
 
     public DriverDashboardController(DriverDashboard view) {
         this.view = view;
         this.matchingService = RideMatchingService.getInstance();
         this.simulationService = RideSimulationService.getInstance();
-        
+
         // Use real logged-in user
         User currentUser = UserSession.getInstance().getCurrentUser();
         if (currentUser == null) {
-             // Fallback for testing without login, though app normally requires login
-             this.currentDriver = new Driver("Unknown Driver", "000", 0, 0, "OFFLINE");
-             this.currentDriver.setId(0);
+            this.currentDriver = new Driver("Unknown Driver", "000", 0, 0, "OFFLINE");
+            this.currentDriver.setId(0);
         } else {
-             // Populate driver info from User
-             this.currentDriver = new Driver(
-                 currentUser.getFullName(), 
-                 currentUser.getPhone(), 
-                 5.0, // Default rating for now, or fetch from separate driver stats
-                 0,   // Default rides
-                 "OFFLINE"
-             );
-             this.currentDriver.setId((int) currentUser.getId()); // Using User ID as Driver ID
+            this.currentDriver = new Driver(
+                    currentUser.getFullName(),
+                    currentUser.getPhone(),
+                    5.0,
+                    0,
+                    "OFFLINE");
+            this.currentDriver.setId((int) currentUser.getId());
         }
-        
+
+        // Set driver ID for simulation
+        simulationService.setDriverId("driver_" + currentDriver.getId());
+
         bindEvents();
         setupPeriodicRefresh();
     }
-    
+
     private void bindEvents() {
         view.getOnlineToggle().addActionListener(e -> toggleOnline());
         view.getAcceptRideButton().addActionListener(e -> acceptRide());
-        view.getStartRideButton().addActionListener(e -> startRide());
+        view.getArrivedAtPickupButton().addActionListener(e -> arrivedAtPickup());
+        view.getStartTripButton().addActionListener(e -> startTrip());
         view.getCompleteRideButton().addActionListener(e -> completeRide());
-        
+
         // Request list selection
         view.getRequestList().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -64,7 +69,7 @@ public class DriverDashboardController {
             }
         });
     }
-    
+
     private void toggleOnline() {
         boolean online = view.getOnlineToggle().isSelected();
 
@@ -73,14 +78,19 @@ public class DriverDashboardController {
             matchingService.registerDriver(currentDriver);
             view.setOnline(true);
             System.out.println("[DriverController] Driver went online");
-            // Immediately refresh and then continue with periodic refresh
             refreshRequests();
+
+            // Show driver on map at current location
+            view.getMapPanel().setCenter(driverLat, driverLon, 14);
+            view.getMapPanel().showEntities(String.format(
+                    "[{\"id\":\"driver_%d\",\"lat\":%.6f,\"lon\":%.6f,\"type\":\"driver\",\"name\":\"%s\"}]",
+                    currentDriver.getId(), driverLat, driverLon, currentDriver.getName()));
+
             JOptionPane.showMessageDialog(
-                view,
-                "You are now online! You will see ride requests automatically.",
-                "Online",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                    view,
+                    "You are now online! You will see ride requests automatically.",
+                    "Online",
+                    JOptionPane.INFORMATION_MESSAGE);
         } else {
             currentDriver.setStatus("OFFLINE");
             matchingService.unregisterDriver(currentDriver);
@@ -88,7 +98,6 @@ public class DriverDashboardController {
             view.getRequestListModel().clear();
             view.getAcceptRideButton().setEnabled(false);
             if (currentRide != null) {
-                // Cancel current ride if going offline
                 cancelRide();
             }
             System.out.println("[DriverController] Driver went offline");
@@ -100,45 +109,38 @@ public class DriverDashboardController {
             if (!view.getOnlineToggle().isSelected()) {
                 return;
             }
-            
+
             var requests = matchingService.getPendingRequests();
             System.out.println("[DriverController] Refreshing requests. Found: " + requests.size());
-            System.out.println("[DriverController] All requests in service: " + matchingService.getAllRequestsCount());
-            
-            // Clear and repopulate
+
             view.getRequestListModel().clear();
 
             if (requests.isEmpty()) {
                 view.getRequestListModel().addElement("No ride requests available");
             } else {
                 for (RideRequest request : requests) {
-                    // Show passenger name and locations
                     String displayText = request.toString();
                     view.getRequestListModel().addElement(displayText);
-                    System.out.println("[DriverController] Added request: " + displayText);
                 }
             }
 
-            // Enable accept button if selection exists and no active ride
             int selectedIndex = view.getRequestList().getSelectedIndex();
             view.getAcceptRideButton().setEnabled(
-                selectedIndex >= 0 && 
-                selectedIndex < requests.size() &&
-                currentRide == null
-            );
+                    selectedIndex >= 0 &&
+                            selectedIndex < requests.size() &&
+                            currentRide == null);
         });
     }
-    
+
     private void acceptRide() {
         int index = view.getRequestList().getSelectedIndex();
 
         if (index == -1) {
             JOptionPane.showMessageDialog(
-                view,
-                "Please select a ride request first",
-                "No Selection",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    view,
+                    "Please select a ride request first",
+                    "No Selection",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -146,141 +148,154 @@ public class DriverDashboardController {
         if (index >= requests.size()) {
             return;
         }
-        
+
         currentRide = requests.get(index);
         if (currentRide.isAccepted()) {
             JOptionPane.showMessageDialog(
-                view,
-                "This ride has already been accepted",
-                "Ride Taken",
-                JOptionPane.WARNING_MESSAGE
-            );
+                    view,
+                    "This ride has already been accepted",
+                    "Ride Taken",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
+
         matchingService.assignRide(currentRide.getId(), currentDriver.getId(), currentDriver.getName());
 
-        // Show ride on map and UI
-        showRideOnMap(currentRide);
+        // Show UI for active ride
         view.showActiveRide(
-            currentRide.getPickup(),
-            currentRide.getDestination(),
-            "Passenger"
-        );
-        
-        // Notify passenger
-        notifyPassengerAccepted();
-        
+                currentRide.getPickup(),
+                currentRide.getDestination(),
+                currentRide.getPassengerName());
+
+        // Start Phase 1: Driver moving to Pickup
+        startPhase1();
+
         refreshRequests();
+
+        JOptionPane.showMessageDialog(
+                view,
+                "Ride accepted! Navigating to pickup location.",
+                "Ride Accepted",
+                JOptionPane.INFORMATION_MESSAGE);
     }
-    
-    private void showRideOnMap(RideRequest request) {
-        // Show route
-        view.getMapPanel().setRoute(
-            request.getPickupLat(), request.getPickupLon(),
-            request.getDestLat(), request.getDestLon()
-        );
-        
-        // Center on pickup
-        view.getMapPanel().setCenter(request.getPickupLat(), request.getPickupLon(), 15);
-        
-        // Show passenger location
-        String entitiesJson = String.format(
-            "[{\"id\":\"passenger1\",\"lat\":%.6f,\"lon\":%.6f,\"type\":\"passenger\",\"name\":\"Passenger\"}]",
-            request.getPickupLat(), request.getPickupLon()
-        );
-        view.getMapPanel().showEntities(entitiesJson);
-    }
-    
-    private void notifyPassengerAccepted() {
-        // In real app, notify passenger through service
-        // For demo, this is handled by the matching service
-    }
-    
-    private void startRide() {
-        if (currentRide == null) return;
-        
-        int result = JOptionPane.showConfirmDialog(
-            view,
-            "Start the ride to " + currentRide.getDestination() + "?",
-            "Start Ride",
-            JOptionPane.YES_NO_OPTION
-        );
-        
-        if (result == JOptionPane.YES_OPTION) {
-            rideStarted = true;
-            view.setRideStarted(true);
-            
-            // Notify service
-            matchingService.startRide(currentRide.getId());
-            
-            // Start simulation
-            double driverLat = currentRide.getPickupLat() + 0.005; // Driver starts slightly away
-            double driverLon = currentRide.getPickupLon() + 0.005;
-            
-            simulationService.startRide(
+
+    private void startPhase1() {
+        // Phase 1: Driver -> Pickup
+        simulationService.startPhase1(
                 view.getMapPanel(),
                 driverLat, driverLon,
                 currentRide.getPickupLat(), currentRide.getPickupLon(),
-                currentRide.getDestLat(), currentRide.getDestLon(),
                 () -> {
-                    // On complete
+                    // On arrive at pickup
                     SwingUtilities.invokeLater(() -> {
+                        driverAtPickup = true;
+                        driverLat = currentRide.getPickupLat();
+                        driverLon = currentRide.getPickupLon();
                         JOptionPane.showMessageDialog(
-                            view,
-                            "You have arrived at the destination!",
-                            "Arrived",
-                            JOptionPane.INFORMATION_MESSAGE
-                        );
+                                view,
+                                "You have arrived at the pickup location!\nClick 'Arrived at Pickup' to confirm.",
+                                "Arrived at Pickup",
+                                JOptionPane.INFORMATION_MESSAGE);
                     });
-                }
-            );
-            
-            JOptionPane.showMessageDialog(
+                });
+    }
+
+    private void arrivedAtPickup() {
+        if (currentRide == null)
+            return;
+
+        // Stop Phase 1 simulation if still running
+        simulationService.stopRide();
+
+        driverAtPickup = true;
+        view.setDriverArrivedAtPickup();
+
+        // Update service status to ARRIVED
+        matchingService.arriveAtPickup(currentRide.getId());
+
+        JOptionPane.showMessageDialog(
                 view,
-                "Ride started! Driver is navigating to passenger.",
-                "Ride Started",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                "Passenger notified. Click 'Start Trip' when passenger is in the car.",
+                "Ready",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void startTrip() {
+        if (currentRide == null || !driverAtPickup)
+            return;
+
+        int result = JOptionPane.showConfirmDialog(
+                view,
+                "Start the trip to " + currentRide.getDestination() + "?",
+                "Start Trip",
+                JOptionPane.YES_NO_OPTION);
+
+        if (result == JOptionPane.YES_OPTION) {
+            tripStarted = true;
+            view.setRideStarted(true);
+
+            // Phase 2: Pickup -> Destination
+            simulationService.startPhase2(
+                    view.getMapPanel(),
+                    currentRide.getPickupLat(), currentRide.getPickupLon(),
+                    currentRide.getDestLat(), currentRide.getDestLon(),
+                    () -> {
+                        SwingUtilities.invokeLater(() -> {
+                            JOptionPane.showMessageDialog(
+                                    view,
+                                    "You have arrived at the destination!",
+                                    "Destination Reached",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        });
+                    });
+
+            JOptionPane.showMessageDialog(
+                    view,
+                    "Trip started! Navigating to destination.",
+                    "Trip Started",
+                    JOptionPane.INFORMATION_MESSAGE);
         }
     }
-    
+
     private void completeRide() {
-        if (currentRide == null) return;
-        
+        if (currentRide == null)
+            return;
+
         int result = JOptionPane.showConfirmDialog(
-            view,
-            "Complete the ride?",
-            "Complete Ride",
-            JOptionPane.YES_NO_OPTION
-        );
-        
+                view,
+                "Complete the ride?",
+                "Complete Ride",
+                JOptionPane.YES_NO_OPTION);
+
         if (result == JOptionPane.YES_OPTION) {
-            // Stop simulation
             simulationService.stopRide();
-            
-            // Clear map
+
             view.getMapPanel().clearRoute();
             view.getMapPanel().clearMap();
-            
-            // Hide active ride
             view.hideActiveRide();
-            
-            // Notify passenger
-            notifyPassengerCompleted();
-            
+
+            // Update driver location to destination
+            driverLat = currentRide.getDestLat();
+            driverLon = currentRide.getDestLon();
+
             currentRide = null;
-            rideStarted = false;
-            
+            driverAtPickup = false;
+            tripStarted = false;
+
             JOptionPane.showMessageDialog(
-                view,
-                "Ride completed successfully!",
-                "Ride Complete",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                    view,
+                    "Ride completed successfully!",
+                    "Ride Complete",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // Show driver at new location
+            view.getMapPanel().setCenter(driverLat, driverLon, 14);
+            view.getMapPanel().showEntities(String.format(
+                    "[{\"id\":\"driver_%d\",\"lat\":%.6f,\"lon\":%.6f,\"type\":\"driver\",\"name\":\"%s\"}]",
+                    currentDriver.getId(), driverLat, driverLon, currentDriver.getName()));
         }
     }
-    
+
     private void cancelRide() {
         if (currentRide != null) {
             simulationService.stopRide();
@@ -288,17 +303,12 @@ public class DriverDashboardController {
             view.getMapPanel().clearMap();
             view.hideActiveRide();
             currentRide = null;
-            rideStarted = false;
+            driverAtPickup = false;
+            tripStarted = false;
         }
     }
-    
-    private void notifyPassengerCompleted() {
-        // In real app, notify passenger through service
-        // For demo, find passenger controller and notify
-    }
-    
+
     private void setupPeriodicRefresh() {
-        // Refresh requests every 3 seconds when online
         refreshTimer = new Timer(3000, e -> {
             if (view.getOnlineToggle().isSelected() && currentRide == null) {
                 refreshRequests();
