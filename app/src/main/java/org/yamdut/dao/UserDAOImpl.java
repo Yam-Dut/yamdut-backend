@@ -202,4 +202,22 @@ public class UserDAOImpl implements UserDAO {
             throw new RuntimeException("Failed to update password", e);
         }
     }
+
+    @Override
+    public User findByLogin(String login) {
+        String sql = "SELECT * FROM users WHERE email = ? OR username = ?";
+
+        try (Connection conn = MySqlConfig.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, login);
+            ps.setString(2, login);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                return null;
+            }
+            return mapUser(rs);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch user by login", e);
+        }
+    }
 }

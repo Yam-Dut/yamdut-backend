@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 
 import org.yamdut.controller.DriverDashboardController;
 import org.yamdut.controller.PassengerDashboardController;
-// import org.yamdut.controller.AdminDashboardController;
+import org.yamdut.controller.AdminDashboardController;
 
 import org.yamdut.model.Role;
 import org.yamdut.model.User;
@@ -81,8 +81,7 @@ public class ScreenManager {
 
             case ADMIN:
                 AdminDashboard adminDashboard = new AdminDashboard();
-                // AdminDashboardController adminController = new
-                // AdminDashboardController(adminDashboard);
+                new AdminDashboardController(adminDashboard);
 
                 // Wire logout
                 adminDashboard.getLogoutButton().addActionListener(e -> {

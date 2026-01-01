@@ -9,17 +9,18 @@ import org.yamdut.database.MySqlConfig;
 import org.yamdut.model.Ride;
 
 public class RideDAOImpl implements RideDAO {
-    private DatabaseConfig db = (DatabaseConfig) new MySqlConfig();
+    private final DatabaseConfig db = new MySqlConfig();
 
     @Override
     public boolean createRide(Ride ride) {
         Connection conn = db.openConnection();
-        if (conn == null) return false;
-        
-        String sql = "INSERT INTO rides (driver_id, passenger_id, from_location, to_location, status, duration) VALUES (" 
-            + ride.getDriverId() + ", " + ride.getPassengerId() + ", '" + ride.getFromLocation() 
-            + "', '" + ride.getToLocation() + "', '" + ride.getStatus() + "', " + ride.getDuration() + ")";
-        
+        if (conn == null)
+            return false;
+
+        String sql = "INSERT INTO rides (driver_id, passenger_id, from_location, to_location, status, duration) VALUES ("
+                + ride.getDriverId() + ", " + ride.getPassengerId() + ", '" + ride.getFromLocation()
+                + "', '" + ride.getToLocation() + "', '" + ride.getStatus() + "', " + ride.getDuration() + ")";
+
         try {
             int result = db.executeUpdate(conn, sql);
             return result > 0;
@@ -31,8 +32,9 @@ public class RideDAOImpl implements RideDAO {
     @Override
     public Ride getRideById(int id) {
         Connection conn = db.openConnection();
-        if (conn == null) return null;
-        
+        if (conn == null)
+            return null;
+
         String sql = "SELECT * FROM rides WHERE id = " + id;
         try {
             ResultSet rs = db.runQuery(conn, sql);
@@ -50,12 +52,14 @@ public class RideDAOImpl implements RideDAO {
     @Override
     public boolean updateRide(Ride ride) {
         Connection conn = db.openConnection();
-        if (conn == null) return false;
-        
-        String sql = "UPDATE rides SET driver_id = " + ride.getDriverId() + ", passenger_id = " + ride.getPassengerId() 
-            + ", from_location = '" + ride.getFromLocation() + "', to_location = '" + ride.getToLocation() 
-            + "', status = '" + ride.getStatus() + "', duration = " + ride.getDuration() + " WHERE id = " + ride.getId();
-        
+        if (conn == null)
+            return false;
+
+        String sql = "UPDATE rides SET driver_id = " + ride.getDriverId() + ", passenger_id = " + ride.getPassengerId()
+                + ", from_location = '" + ride.getFromLocation() + "', to_location = '" + ride.getToLocation()
+                + "', status = '" + ride.getStatus() + "', duration = " + ride.getDuration() + " WHERE id = "
+                + ride.getId();
+
         try {
             int result = db.executeUpdate(conn, sql);
             return result > 0;
@@ -67,8 +71,9 @@ public class RideDAOImpl implements RideDAO {
     @Override
     public boolean deleteRide(int id) {
         Connection conn = db.openConnection();
-        if (conn == null) return false;
-        
+        if (conn == null)
+            return false;
+
         String sql = "DELETE FROM rides WHERE id = " + id;
         try {
             int result = db.executeUpdate(conn, sql);
@@ -82,8 +87,9 @@ public class RideDAOImpl implements RideDAO {
     public List<Ride> getAllRides() {
         List<Ride> rides = new ArrayList<>();
         Connection conn = db.openConnection();
-        if (conn == null) return rides;
-        
+        if (conn == null)
+            return rides;
+
         String sql = "SELECT * FROM rides";
         try {
             ResultSet rs = db.runQuery(conn, sql);
@@ -104,8 +110,9 @@ public class RideDAOImpl implements RideDAO {
     public List<Ride> getRidesByStatus(String status) {
         List<Ride> rides = new ArrayList<>();
         Connection conn = db.openConnection();
-        if (conn == null) return rides;
-        
+        if (conn == null)
+            return rides;
+
         String sql = "SELECT * FROM rides WHERE status = '" + status + "'";
         try {
             ResultSet rs = db.runQuery(conn, sql);

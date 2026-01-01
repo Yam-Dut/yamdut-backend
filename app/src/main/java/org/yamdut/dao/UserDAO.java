@@ -24,4 +24,6 @@ public interface UserDAO {
     boolean deleteUser(int userId);
 
     void updatePassword(String email, String passwordHash);
+
+    User findByLogin(String login);
 }

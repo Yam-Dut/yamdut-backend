@@ -12,12 +12,13 @@ import org.yamdut.model.Trip;
 import org.yamdut.model.Trip.TripStatus;
 
 public class TripDAOImpl implements TripDAO {
-    private final DatabaseConfig db = (DatabaseConfig) new MySqlConfig();
+    private final DatabaseConfig db = new MySqlConfig();
 
     @Override
     public boolean createTrip(Trip trip) {
         Connection conn = db.openConnection();
-        if (conn == null) return false;
+        if (conn == null)
+            return false;
 
         String sql = "INSERT INTO trips (driver_id, rider_id, rider_name, rider_phone, pickup_location, pickup_lat, pickup_lng, "
                 + "drop_location, dropoff_lat, dropoff_lng, base_fare, adjusted_fare, status, request_time) VALUES ("
@@ -57,7 +58,8 @@ public class TripDAOImpl implements TripDAO {
 
     @Override
     public List<Trip> getPendingTripsByDriver(int driverId) {
-        String sql = "SELECT * FROM trips WHERE driver_id = " + driverId + " AND status = 'PENDING' ORDER BY request_time DESC";
+        String sql = "SELECT * FROM trips WHERE driver_id = " + driverId
+                + " AND status = 'PENDING' ORDER BY request_time DESC";
         return runListQuery(sql);
     }
 
@@ -70,7 +72,8 @@ public class TripDAOImpl implements TripDAO {
     private List<Trip> runListQuery(String sql) {
         List<Trip> trips = new ArrayList<>();
         Connection conn = db.openConnection();
-        if (conn == null) return trips;
+        if (conn == null)
+            return trips;
 
         try {
             ResultSet rs = db.runQuery(conn, sql);
