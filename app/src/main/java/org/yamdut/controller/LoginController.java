@@ -36,7 +36,7 @@ public class LoginController {
         if (currentWorker != null && !currentWorker.isDone()) {
             currentWorker.cancel(true);
         }
-        currentWorker = new SwingWorker<User,Void>() {
+        currentWorker = new SwingWorker<User, Void>() {
             private String error;
 
             @Override
@@ -53,6 +53,7 @@ public class LoginController {
                     return null;
                 }
             }
+
             @Override
             protected void done() {
                 SwingUtilities.invokeLater(() -> {
@@ -61,13 +62,14 @@ public class LoginController {
                         return;
                     }
                 });
-                
+
                 try {
                     User user = get();
 
                     if (user != null) {
                         UserSession.getInstance().login(user);
-                        // SwingUtilities.invokeLater(() -> screenManager.showDashBoardForRole(user.getRole()));
+                        // SwingUtilities.invokeLater(() ->
+                        // screenManager.showDashBoardForRole(user.getRole()));
                         screenManager.showDashBoardForRole(user.getRole());
                     } else if (error != null) {
                         view.showError(error);
@@ -79,7 +81,7 @@ public class LoginController {
                     // to different dashboards using ScreenManager.
                     // role already computed above
                 } catch (CancellationException | InterruptedException ignored) {
-                    //ignore cancelled login
+                    // ignore cancelled login
                 } catch (ExecutionException e) {
                     view.showError("Unexpected error during login: " + e.getCause().getMessage());
                 }
@@ -89,6 +91,7 @@ public class LoginController {
         view.setLoading(true);
         currentWorker.execute();
     }
+
     public void logout() {
         if (currentWorker != null && !currentWorker.isDone()) {
             currentWorker.cancel(true);
@@ -105,12 +108,48 @@ public class LoginController {
     }
 
     public void requestPasswordReset(String email) {
-        // Minimal placeholder – backend-only decision making can be added later
-        JOptionPane.showMessageDialog(
-                null,
-                "Password reset flow is not implemented yet.\nRequested for: " + email,
-                "Info",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        // 1. Request OTP
+        try {
+            authService.requestPasswordReset(email);
+        } catch (Exception e) {
+            view.showError("Failed to request password reset: " + e.getMessage());
+            return;
+        }
+
+        // 2. Ask for OTP
+        String otp = JOptionPane.showInputDialog(
+                view,
+                "An OTP has been sent to " + email + ".\nPlease enter it below:",
+                "Enter OTP",
+                JOptionPane.QUESTION_MESSAGE);
+
+        if (otp == null || otp.trim().isEmpty())
+            return; // User cancelled
+
+        // 3. Ask for New Password
+        javax.swing.JPasswordField pf = new javax.swing.JPasswordField();
+        int okCfm = JOptionPane.showConfirmDialog(
+                view,
+                pf,
+                "Enter New Password",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (okCfm != JOptionPane.OK_OPTION)
+            return;
+
+        String newPassword = new String(pf.getPassword());
+        if (newPassword.isEmpty()) {
+            view.showError("Password cannot be empty.");
+            return;
+        }
+
+        // 4. Reset
+        try {
+            authService.resetPassword(email, otp.trim(), newPassword);
+            view.showSuccess("Password reset successfully! You can now login.");
+        } catch (Exception e) {
+            view.showError("Failed to reset password: " + e.getMessage());
+        }
     }
 }
