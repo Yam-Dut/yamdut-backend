@@ -103,7 +103,24 @@ public class UserDAOImpl implements UserDAO {
         user.setFullName(rs.getString("full_name"));
         user.setEmail(rs.getString("email"));
         user.setUsername(rs.getString("username"));
-        user.setRole(Role.valueOf(rs.getString("role")));
+        // Robust Role parsing
+        String roleStr = rs.getString("role");
+        if (roleStr != null) {
+            try {
+                // Normalize legacy "user" to PASSENGER if needed
+                if (roleStr.equalsIgnoreCase("USER")) {
+                    user.setRole(Role.PASSENGER);
+                } else {
+                    user.setRole(Role.valueOf(roleStr.toUpperCase()));
+                }
+            } catch (IllegalArgumentException e) {
+                // Fallback or log error - defaulting to PASSENGER to avoid crash
+                System.err.println("Warning: Invalid role '" + roleStr + "' found for user ID " + rs.getLong("id"));
+                user.setRole(Role.PASSENGER);
+            }
+        } else {
+            user.setRole(Role.PASSENGER); // Default if null
+        }
         user.setPasswordHash(rs.getString("password_hash"));
 
         // Handle verified column if it exists, otherwise default to false

@@ -148,7 +148,7 @@ public class AdminDashboardController {
         JTextField phone = new JTextField();
         JTextField username = new JTextField();
         JPasswordField password = new JPasswordField();
-        JComboBox<String> role = new JComboBox<>(new String[] { "ADMIN", "DRIVER", "USER" });
+        JComboBox<String> role = new JComboBox<>(new String[] { "ADMIN", "DRIVER", "PASSENGER" });
         form.add(new JLabel("Full Name"));
         form.add(name);
         form.add(new JLabel("Email"));
@@ -210,7 +210,7 @@ public class AdminDashboardController {
         }
         JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
         JTextField phone = new JTextField(existing.getPhone());
-        JComboBox<String> role = new JComboBox<>(new String[] { "ADMIN", "DRIVER", "USER" });
+        JComboBox<String> role = new JComboBox<>(new String[] { "ADMIN", "DRIVER", "PASSENGER" });
         role.setSelectedItem(existing.getRole().toString());
         form.add(new JLabel("Phone"));
         form.add(phone);
@@ -309,39 +309,82 @@ public class AdminDashboardController {
     }
 
     private void addNewDriver(JDialog parent, DefaultTableModel model) {
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        JTextField name = new JTextField();
-        JTextField phone = new JTextField();
-        JTextField rating = new JTextField("4.5");
-        JTextField rides = new JTextField("0");
-        JComboBox<String> status = new JComboBox<>(new String[] { "online", "offline", "suspended" });
-        form.add(new JLabel("Name"));
-        form.add(name);
-        form.add(new JLabel("Phone"));
-        form.add(phone);
-        form.add(new JLabel("Rating"));
-        form.add(rating);
-        form.add(new JLabel("Total Rides"));
-        form.add(rides);
-        form.add(new JLabel("Status"));
-        form.add(status);
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
 
-        int res = JOptionPane.showConfirmDialog(parent, form, "Add Driver", JOptionPane.OK_CANCEL_OPTION,
+        JTextField name = new JTextField(20);
+        JTextField phone = new JTextField(20);
+        JTextField rating = new JTextField("4.5", 20);
+        JTextField rides = new JTextField("0", 20);
+        JComboBox<String> status = new JComboBox<>(new String[] { "online", "offline", "suspended" });
+
+        int row = 0;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        form.add(new JLabel("Name:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        form.add(name, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        form.add(new JLabel("Phone:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        form.add(phone, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        form.add(new JLabel("Rating:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        form.add(rating, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        form.add(new JLabel("Total Rides:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        form.add(rides, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        form.add(new JLabel("Status:"), gbc);
+        gbc.gridx = 1;
+        gbc.gridy = row++;
+        form.add(status, gbc);
+
+        int res = JOptionPane.showConfirmDialog(parent, form, "Add New Driver", JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE);
+
         if (res == JOptionPane.OK_OPTION) {
+            // Validation
+            if (name.getText().trim().isEmpty() || phone.getText().trim().isEmpty()) {
+                showNotification("Validation Error", "Name and Phone cannot be empty.", NotificationType.WARNING);
+                return;
+            }
+
             try {
                 Driver d = new Driver();
-                d.setName(name.getText());
-                d.setPhone(phone.getText());
+                d.setName(name.getText().trim());
+                d.setPhone(phone.getText().trim());
                 d.setRating(Double.parseDouble(rating.getText()));
                 d.setTotalRides(Integer.parseInt(rides.getText()));
                 d.setStatus(status.getSelectedItem().toString());
 
                 if (driverDAO.createDriver(d)) {
                     loadDrivers(model, null);
+                    showNotification("Success", "Driver added successfully!", NotificationType.SUCCESS);
                 } else {
-                    showNotification("Error", "Failed to add driver", NotificationType.ERROR);
+                    showNotification("Error", "Failed to add driver. Check console for details.",
+                            NotificationType.ERROR);
                 }
+            } catch (NumberFormatException nfe) {
+                showNotification("Validation Error", "Rating must be a number and Rides must be an integer.",
+                        NotificationType.WARNING);
             } catch (Exception ex) {
                 handleException(ex, "add driver");
             }

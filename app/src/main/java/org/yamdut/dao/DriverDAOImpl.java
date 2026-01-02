@@ -17,13 +17,20 @@ public class DriverDAOImpl implements DriverDAO {
         if (conn == null)
             return false;
 
-        String sql = "INSERT INTO drivers (name, phone, rating, total_rides, status) VALUES ('"
-                + driver.getName() + "', '" + driver.getPhone() + "', " + driver.getRating()
-                + ", " + driver.getTotalRides() + ", '" + driver.getStatus() + "')";
+        String sql = "INSERT INTO drivers (name, phone, rating, total_rides, status) VALUES (?, ?, ?, ?, ?)";
 
-        try {
-            int result = db.executeUpdate(conn, sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, driver.getName());
+            ps.setString(2, driver.getPhone());
+            ps.setDouble(3, driver.getRating());
+            ps.setInt(4, driver.getTotalRides());
+            ps.setString(5, driver.getStatus());
+
+            int result = ps.executeUpdate();
             return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         } finally {
             db.closeConnection(conn);
         }
@@ -55,13 +62,21 @@ public class DriverDAOImpl implements DriverDAO {
         if (conn == null)
             return false;
 
-        String sql = "UPDATE drivers SET name = '" + driver.getName() + "', phone = '" + driver.getPhone()
-                + "', rating = " + driver.getRating() + ", total_rides = " + driver.getTotalRides()
-                + ", status = '" + driver.getStatus() + "' WHERE id = " + driver.getId();
+        String sql = "UPDATE drivers SET name = ?, phone = ?, rating = ?, total_rides = ?, status = ? WHERE id = ?";
 
-        try {
-            int result = db.executeUpdate(conn, sql);
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, driver.getName());
+            ps.setString(2, driver.getPhone());
+            ps.setDouble(3, driver.getRating());
+            ps.setInt(4, driver.getTotalRides());
+            ps.setString(5, driver.getStatus());
+            ps.setInt(6, driver.getId());
+
+            int result = ps.executeUpdate();
             return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         } finally {
             db.closeConnection(conn);
         }
@@ -73,10 +88,14 @@ public class DriverDAOImpl implements DriverDAO {
         if (conn == null)
             return false;
 
-        String sql = "DELETE FROM drivers WHERE id = " + id;
-        try {
-            int result = db.executeUpdate(conn, sql);
+        String sql = "DELETE FROM drivers WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int result = ps.executeUpdate();
             return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         } finally {
             db.closeConnection(conn);
         }
