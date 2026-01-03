@@ -1,124 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yamdut Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
-        crossorigin=""/>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yamdut Map</title>
     
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+    <!-- Leaflet CSS (lightweight, no WebGL required) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    #map {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
-    
-    #debug {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 6px;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 9px;
-      z-index: 2000;
-      max-width: 180px;
-      max-height: 120px;
-      overflow-y: auto;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      pointer-events: none;
-      display: none; /* Hide debug by default */
-    }
-    
-    .leaflet-container {
-      background: #e5e5e5;
-      font-family: Arial, sans-serif;
-    }
-    
-    .yamdut-marker {
-      background: transparent !important;
-      border: none !important;
-    }
-    
-    /* Ensure tiles render properly */
-    .leaflet-tile {
-      image-rendering: auto;
-    }
-  </style>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow: hidden;
+        }
+        
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            background: #f0f0f0;
+        }
+        
+        .info-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 12px;
+            z-index: 500;
+            max-width: 300px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .info-panel h3 {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+        
+        .info-panel p {
+            margin: 2px 0;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        .info-panel .coord {
+            color: #0066cc;
+            font-weight: 500;
+        }
+        
+        .debug-console {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.85);
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 10px;
+            max-width: 300px;
+            max-height: 100px;
+            overflow-y: auto;
+            z-index: 500;
+            display: none;
+        }
+        
+        .debug-console.show {
+            display: block;
+        }
+        
+        .leaflet-control-container .leaflet-top.leaflet-right {
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        
+        .location-btn {
+            position: absolute;
+            top: 80px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-size: 18px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .location-btn:hover {
+            background: #f4f4f4;
+        }
+        
+        .location-btn:active {
+            background: #e8e8e8;
+        }
+    </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div id="debug">Loading...</div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin=""></script>
-  <script src="./map.js"></script>
-  <script>
-    (function() {
-      const debugEl = document.getElementById('debug');
-      let logCount = 0;
-
-      function log(msg) {
-        console.log('[Map] ' + msg);
-        logCount++;
-        
-        // Only show first few logs
-        if (logCount <= 5 && debugEl) {
-          const time = new Date().toLocaleTimeString();
-          debugEl.innerHTML = time + ': ' + msg + '<br>' + debugEl.innerHTML;
+    <div id="map"></div>
+    
+    <!-- Location button -->
+    <button class="location-btn" onclick="YamdutMap.startLocationTracking()" title="Find my location">
+        📍
+    </button>
+    <div id="infoPanel" class="info-panel" style="display: none;">
+        <h3>Map Info</h3>
+        <p>Lat: <span id="lat" class="coord">27.7172</span></p>
+        <p>Lng: <span id="lng" class="coord">85.3240</span></p>
+        <p>Zoom: <span id="zoom" class="coord">13</span></p>
+        <p>Location: <span class="coord">Kathmandu, Nepal</span></p>
+        <p>Role: <span id="role" class="coord">passenger</span></p>
+    </div>
+    <div id="debugConsole" class="debug-console"></div>
+    
+    <!-- Leaflet JS (no WebGL required - pure SVG rendering) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Check if Leaflet loaded -->
+    <script>
+        console.log('[index.html] Leaflet loaded, L available:', typeof L !== 'undefined');
+        if (typeof L === 'undefined') {
+            console.error('[index.html] CRITICAL: Leaflet library failed to load!');
         }
-        
-        if (window.java && window.java.logDebug) {
-          window.java.logDebug(msg);
+    </script>
+    
+    <!-- YamdutMap Script -->
+    <script src="map.js"></script>
+    
+    <!-- Check if YamdutMap loaded -->
+    <script>
+        console.log('[index.html] map.js loaded, YamdutMap available:', typeof YamdutMap !== 'undefined');
+        if (typeof YamdutMap === 'undefined') {
+            console.error('[index.html] CRITICAL: map.js failed to load or YamdutMap not defined!');
         }
-      }
-
-      window.onerror = function(msg, url, line) {
-        log('JS Error: ' + msg);
-        return false;
-      };
-
-      // Wait for page load
-      if (document.readyState === 'loading') {
+    </script>
+    
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-          log('DOM ready');
+            console.log('[index.html] DOMContentLoaded fired');
+            console.log('[index.html] Checking availability...');
+            console.log('  - L:', typeof L);
+            console.log('  - YamdutMap:', typeof YamdutMap);
+            
+            if (typeof YamdutMap !== 'undefined' && typeof L !== 'undefined') {
+                console.log('[index.html] Both libraries available, calling init...');
+                var result = YamdutMap.init('passenger');
+                console.log('[index.html] YamdutMap.init returned:', result);
+            } else {
+                console.error('[index.html] Missing libraries - cannot initialize!');
+                if (typeof L === 'undefined') console.error('  - Leaflet (L) not available');
+                if (typeof YamdutMap === 'undefined') console.error('  - YamdutMap not available');
+            }
         });
-      } else {
-        log('DOM already ready');
-      }
-
-      // Expose init function
-      window.initMap = function(role) {
-        log('Init called for role: ' + role);
-        if (window.YamdutMap) {
-          window.YamdutMap.init(role);
-        } else {
-          log('ERROR: YamdutMap not loaded');
-        }
-      };
-
-      log('Map script loaded');
-    })();
-  </script>
+    </script>
 </body>
 </html>
 
