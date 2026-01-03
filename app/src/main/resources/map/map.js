@@ -1,333 +1,522 @@
-const YamdutMap = (() => {
-    let map = null;
-    let role = "passenger";
-    let markers = {};
-    let routeLayer = null;
-    let currentTileLayer = null;
-
+// Yamdut Map Module - Leaflet Version (No WebGL required)
+var YamdutMap = (function() {
+    'use strict';
+    
+    var map = null;
+    var markers = {};
+    var routes = {};
+    var userRole = 'passenger';
+    var userLocation = [27.7172, 85.3240]; // Default: Kathmandu, Nepal
+    var userMarker = null;
+    var watchId = null;
+    
     function log(msg) {
         console.log('[YamdutMap] ' + msg);
-        if (window.java && window.java.logDebug) {
-            window.java.logDebug(msg);
-        }
     }
-
-    // Try different tile sources with fallbacks
-    function createTileLayer() {
-        // Primary: Standard OpenStreetMap tiles (most reliable)
-        const osmTileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            minZoom: 1,
-            maxZoom: 19,
-            tileSize: 256,
-            zoomOffset: 0,
-            updateWhenZooming: false,
-            updateWhenIdle: true,
-            keepBuffer: 2,
-            crossOrigin: false
-        });
-
-        // Fallback 1: OpenStreetMap France (backup)
-        const osmFrTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap France',
-            minZoom: 1,
-            maxZoom: 20,
-            subdomains: 'abc',
-            tileSize: 256,
-            updateWhenZooming: false,
-            updateWhenIdle: true,
-            keepBuffer: 2,
-            crossOrigin: false
-        });
-
-        // Fallback 2: Wikimedia maps
-        const wikimediaTileLayer = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            minZoom: 1,
-            maxZoom: 19,
-            tileSize: 256,
-            updateWhenZooming: false,
-            updateWhenIdle: true,
-            keepBuffer: 2,
-            crossOrigin: false
-        });
-
-        // Try primary first
-        osmTileLayer.on('tileerror', function(error, tile) {
-            log('OSM tile error, trying fallback');
-            if (currentTileLayer === osmTileLayer) {
-                map.removeLayer(osmTileLayer);
-                osmFrTileLayer.addTo(map);
-                currentTileLayer = osmFrTileLayer;
-                
-                osmFrTileLayer.on('tileerror', function() {
-                    log('OSM-FR tile error, trying Wikimedia');
-                    if (currentTileLayer === osmFrTileLayer) {
-                        map.removeLayer(osmFrTileLayer);
-                        wikimediaTileLayer.addTo(map);
-                        currentTileLayer = wikimediaTileLayer;
-                    }
-                });
-            }
-        });
-
-        return osmTileLayer;
+    
+    function logError(msg, err) {
+        console.error('[YamdutMap ERROR] ' + msg, err);
     }
-
-    function init(userRole) {
-        role = userRole;
-        log('Initializing map with role: ' + role);
+    
+    function createMarkerIcon(type) {
+        var colors = {
+            driver: '#4CAF50',
+            passenger: '#2196F3',
+            pickup: '#FF9800',
+            dropoff: '#F44336'
+        };
         
-        if (map) {
-            log('Map exists, resizing');
-            setTimeout(() => {
-                map.invalidateSize(true);
-            }, 100);
-            return;
-        }
-
-        // Kathmandu bounds
-        const kathmanduBounds = L.latLngBounds([27.60, 85.20], [27.80, 85.45]);
+        var color = colors[type] || colors.passenger;
+        var letter = type === 'driver' ? 'D' : type === 'passenger' ? 'P' : '';
         
-        log('Creating Leaflet map instance');
-        
-        // Simplified map options for better compatibility
-        map = L.map("map", {
-            maxBounds: kathmanduBounds,
-            maxBoundsViscosity: 0.8,
-            zoomControl: true,
-            attributionControl: true,
-            preferCanvas: false,  // Use SVG for better WebView compatibility
-            fadeAnimation: false,  // Disable animations that might cause issues
-            zoomAnimation: false,
-            markerZoomAnimation: false,
-            doubleClickZoom: true,
-            scrollWheelZoom: true,
-            boxZoom: true,
-            keyboard: true,
-            dragging: true,
-            touchZoom: true,
-            tap: true
-        }).setView([27.7172, 85.3240], 14);
-
-        // Create and add tile layer
-        currentTileLayer = createTileLayer();
-        currentTileLayer.addTo(map);
-        log('Tile layer added');
-
-        // Handle map click
-        map.on("click", function(e) {
-            log('Map clicked: ' + e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6));
-            if (window.java && window.java.recieveMapClick) {
-                window.java.recieveMapClick(e.latlng.lat, e.latlng.lng);
-            }
-        });
-
-        // Handle map ready
-        map.whenReady(function() {
-            log('Map ready! Zoom: ' + map.getZoom());
-            
-            // Force multiple resize attempts
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize(true);
-                    log('Resize attempt 1');
-                }
-            }, 100);
-            
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize(true);
-                    log('Resize attempt 2');
-                }
-            }, 300);
-            
-            setTimeout(() => {
-                if (map) {
-                    map.invalidateSize(true);
-                    log('Resize attempt 3');
-                }
-            }, 600);
-        });
-
-        // Handle tile loading errors globally
-        map.on('tileerror', function(error, tile) {
-            log('Global tile error for: ' + (tile ? tile.src : 'unknown'));
+        return L.divIcon({
+            html: '<div style="background: ' + color + '; width: 36px; height: 36px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">' + letter + '</div>',
+            iconSize: [36, 36],
+            className: 'marker-' + type
         });
     }
-
-    function setCenter(lat, lon, zoom) {
-        if (!map) {
-            log('Cannot set center - map not initialized');
-            return;
-        }
-        map.setView([lat, lon], zoom || 14);
-        log('Center set to: ' + lat + ',' + lon + ' zoom: ' + (zoom || 14));
-    }
-
-    function addOrUpdateMarker(id, lat, lon, type, label) {
-        if (!map) {
-            log('Cannot add marker - map not initialized');
-            return;
-        }
-        
-        if (markers[id]) {
-            markers[id].setLatLng([lat, lon]);
-            if (label) {
-                markers[id].setPopupContent(label);
-            }
-            return;
-        }
-
-        // Create colored circle marker
-        const color = type === 'driver' ? '#4CAF50' : '#2196F3';
-        const icon = L.divIcon({
-            className: 'yamdut-marker',
-            html: '<div style="width:32px;height:32px;border-radius:50%;background:' + color + 
-                  ';border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-
-        const marker = L.marker([lat, lon], { icon: icon }).addTo(map);
-        if (label) {
-            marker.bindPopup(label);
-        }
-        markers[id] = marker;
-        log('Marker added: ' + id);
-    }
-
-    function showEntities(entities) {
-        if (!map) {
-            log('Cannot show entities - map not initialized');
-            return;
-        }
-        
-        // Clear existing markers
-        Object.values(markers).forEach(m => {
-            map.removeLayer(m);
-        });
-        markers = {};
-        
-        // Parse entities
-        let entitiesArray = entities;
-        if (typeof entities === 'string') {
-            try {
-                entitiesArray = JSON.parse(entities);
-            } catch (e) {
-                log('Error parsing entities: ' + e.message);
-                return;
-            }
-        }
-        
-        if (!Array.isArray(entitiesArray)) {
-            log('Entities is not an array');
-            return;
-        }
-        
-        // Add markers
-        entitiesArray.forEach(e => {
-            // Don't show own type
-            if ((role === "driver" && e.type === "driver") || 
-                (role === "passenger" && e.type === "passenger")) {
-                return;
-            }
-            addOrUpdateMarker(e.id, e.lat, e.lon, e.type, e.name || e.id);
-        });
-        
-        log('Showed ' + entitiesArray.length + ' entities');
-    }
-
-    function updateEntityPosition(id, lat, lon) {
-        if (markers[id]) {
-            markers[id].setLatLng([lat, lon]);
-        } else {
-            log('Marker not found for update: ' + id);
-        }
-    }
-
-    async function setRoute(start, end) {
-        if (!map) {
-            log('Cannot set route - map not initialized');
-            return;
-        }
-        
-        clearRoute();
-        
+    
+    function init(role) {
         try {
-            const url = 'https://router.project-osrm.org/route/v1/driving/' +
-                start[1] + ',' + start[0] + ';' + end[1] + ',' + end[0] + 
-                '?overview=full&geometries=geojson';
+            log('Initializing Leaflet map with role: ' + role);
+            userRole = role || 'passenger';
             
-            log('Fetching route from OSRM');
-            const res = await fetch(url);
-            
-            if (!res.ok) {
-                throw new Error('Route API error: ' + res.status);
+            // Get map container
+            var mapContainer = document.getElementById('map');
+            if (!mapContainer) {
+                logError('Map container not found!');
+                return false;
             }
             
-            const data = await res.json();
+            log('Map container found, creating L.map instance...');
             
-            if (!data.routes || !data.routes.length) {
-                log('No route found');
-                return;
-            }
-
-            const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-            routeLayer = L.polyline(coords, {
-                color: '#2196F3',
-                weight: 5,
-                opacity: 0.8,
-                smoothFactor: 1.0
+            // Initialize Leaflet map centered on Kathmandu
+            map = L.map('map', {
+                center: userLocation,
+                zoom: 13,
+                zoomControl: true,
+                attributionControl: true
+            });
+            
+            log('Map instance created');
+            
+            // Add OpenStreetMap tiles (free, no API key needed)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
+                minZoom: 11,
+                maxNativeZoom: 18,
+                updateWhenZooming: false,
+                updateWhenIdle: true
             }).addTo(map);
             
-            map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
-            log('Route displayed successfully');
-        } catch(e) {
-            log('Route error: ' + e.message);
-        }
-    }
-
-    function clearRoute() {
-        if (routeLayer) {
-            map.removeLayer(routeLayer);
-            routeLayer = null;
-        }
-    }
-
-    function clearMap() {
-        Object.values(markers).forEach(m => map.removeLayer(m));
-        markers = {};
-        clearRoute();
-    }
-
-    function resize() {
-        if (map) {
-            try {
-                map.invalidateSize(true);
-                // Force a redraw
-                if (map._onResize) {
-                    map._onResize();
-                }
-                log('Map resized');
-            } catch (e) {
-                log('Resize error: ' + e.message);
+            log('Tile layer added - centered on Kathmandu');
+            
+            
+            // Add zoom/pan controls
+            map.zoomControl.setPosition('topright');
+            
+            // Add scale control
+            L.control.scale({
+                position: 'bottomleft',
+                imperial: false,
+                metric: true
+            }).addTo(map);
+            
+            // Update info panel on move
+            map.on('move', function() {
+                var center = map.getCenter();
+                var zoom = map.getZoom();
+                document.getElementById('lat').textContent = center.lat.toFixed(4);
+                document.getElementById('lng').textContent = center.lng.toFixed(4);
+                document.getElementById('zoom').textContent = zoom;
+            });
+            
+            // Show info panel
+            var infoPanel = document.getElementById('infoPanel');
+            if (infoPanel) {
+                infoPanel.style.display = 'block';
+                document.getElementById('role').textContent = userRole;
             }
-        } else {
-            log('Cannot resize - map not initialized');
+            
+            // Start location tracking
+            startLocationTracking();
+            
+            log('Map initialization complete. Role: ' + userRole + ', Center: Kathmandu');
+            return true;
+            
+        } catch (e) {
+            logError('init() failed: ' + e.message, e);
+            return false;
         }
     }
-
-    // Expose API
+    
+    function setCenter(lat, lng, zoom) {
+        try {
+            if (!map) {
+                logError('Map not initialized');
+                return false;
+            }
+            zoom = zoom || 13;
+            map.setView([lat, lng], zoom);
+            log('Map centered at ' + lat + ', ' + lng);
+            return true;
+        } catch (e) {
+            logError('setCenter() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function addOrUpdateMarker(id, type, lat, lng, label) {
+        try {
+            if (!map) {
+                logError('Map not initialized');
+                return false;
+            }
+            
+            // Remove old marker if exists
+            if (markers[id]) {
+                map.removeLayer(markers[id]);
+            }
+            
+            // Create new marker
+            var icon = createMarkerIcon(type);
+            var marker = L.marker([lat, lng], { icon: icon });
+            
+            // Add popup with label
+            if (label) {
+                marker.bindPopup(label);
+            }
+            
+            marker.addTo(map);
+            markers[id] = marker;
+            
+            log('Marker added: ' + id + ' (' + type + ') at ' + lat + ', ' + lng);
+            return true;
+            
+        } catch (e) {
+            logError('addOrUpdateMarker() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function removeMarker(id) {
+        try {
+            if (markers[id]) {
+                map.removeLayer(markers[id]);
+                delete markers[id];
+                log('Marker removed: ' + id);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            logError('removeMarker() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function showRoute(id, coordinates) {
+        try {
+            if (!map) {
+                logError('Map not initialized');
+                return false;
+            }
+            
+            // Remove old route if exists
+            if (routes[id]) {
+                map.removeLayer(routes[id]);
+            }
+            
+            if (!coordinates || coordinates.length === 0) {
+                return false;
+            }
+            
+            // Convert to Leaflet LatLng format
+            var latlngs = [];
+            for (var i = 0; i < coordinates.length; i++) {
+                if (coordinates[i].lat !== undefined && coordinates[i].lng !== undefined) {
+                    latlngs.push([coordinates[i].lat, coordinates[i].lng]);
+                } else if (Array.isArray(coordinates[i]) && coordinates[i].length === 2) {
+                    latlngs.push([coordinates[i][1], coordinates[i][0]]); // GeoJSON order
+                }
+            }
+            
+            if (latlngs.length > 0) {
+                var polyline = L.polyline(latlngs, {
+                    color: '#2196F3',
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '5, 5'
+                }).addTo(map);
+                
+                routes[id] = polyline;
+                log('Route added: ' + id + ' with ' + latlngs.length + ' points');
+                return true;
+            }
+            
+            return false;
+            
+        } catch (e) {
+            logError('showRoute() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function showRouteWithDistance(pickupLat, pickupLng, destLat, destLng, callback) {
+        try {
+            if (!map) {
+                logError('Map not initialized');
+                return;
+            }
+            
+            log('Fetching route from OSRM: ' + pickupLat + ',' + pickupLng + ' to ' + destLat + ',' + destLng);
+            
+            // Clear existing route
+            clearAllRoutes();
+            
+            // Add pickup and destination markers
+            addOrUpdateMarker('route-pickup', 'pickup', pickupLat, pickupLng, 'Pickup');
+            addOrUpdateMarker('route-destination', 'dropoff', destLat, destLng, 'Destination');
+            
+            // OSRM routing API (free service)
+            var url = 'https://router.project-osrm.org/route/v1/driving/' + 
+                      pickupLng + ',' + pickupLat + ';' + 
+                      destLng + ',' + destLat + 
+                      '?overview=full&geometries=geojson';
+            
+            fetch(url)
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                        var route = data.routes[0];
+                        var coordinates = route.geometry.coordinates;
+                        var distanceMeters = route.distance;
+                        var durationSeconds = route.duration;
+                        
+                        log('Route found: ' + distanceMeters + 'm, ' + durationSeconds + 's');
+                        
+                        // Convert coordinates to Leaflet format
+                        var latlngs = [];
+                        for (var i = 0; i < coordinates.length; i++) {
+                            latlngs.push([coordinates[i][1], coordinates[i][0]]);
+                        }
+                        
+                        // Draw route on map
+                        var polyline = L.polyline(latlngs, {
+                            color: '#2196F3',
+                            weight: 5,
+                            opacity: 0.7
+                        }).addTo(map);
+                        
+                        routes['main-route'] = polyline;
+                        
+                        // Fit map to show entire route
+                        map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                        
+                        // Calculate fare: 5 meters = 10 NPR
+                        var fareNPR = Math.ceil((distanceMeters / 5) * 10);
+                        var distanceKm = (distanceMeters / 1000).toFixed(2);
+                        
+                        log('Fare calculated: ' + fareNPR + ' NPR for ' + distanceKm + ' km');
+                        
+                        // Call Java callback if available
+                        if (callback && typeof callback === 'function') {
+                            callback(distanceMeters, fareNPR, durationSeconds);
+                        }
+                        
+                        // Also call Java bridge if available
+                        if (window.java && window.java.onRouteCalculated) {
+                            window.java.onRouteCalculated(distanceMeters, fareNPR, durationSeconds);
+                        }
+                    } else {
+                        logError('No route found');
+                    }
+                })
+                .catch(function(error) {
+                    logError('Route fetch error: ' + error.message, error);
+                });
+            
+        } catch (e) {
+            logError('showRouteWithDistance() failed: ' + e.message, e);
+        }
+    }
+    
+    function clearAllMarkers() {
+        try {
+            for (var id in markers) {
+                if (markers.hasOwnProperty(id)) {
+                    map.removeLayer(markers[id]);
+                }
+            }
+            markers = {};
+            log('All markers cleared');
+            return true;
+        } catch (e) {
+            logError('clearAllMarkers() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function clearAllRoutes() {
+        try {
+            for (var id in routes) {
+                if (routes.hasOwnProperty(id)) {
+                    map.removeLayer(routes[id]);
+                }
+            }
+            routes = {};
+            log('All routes cleared');
+            return true;
+        } catch (e) {
+            logError('clearAllRoutes() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function getMarkers() {
+        var result = [];
+        for (var id in markers) {
+            if (markers.hasOwnProperty(id)) {
+                var latLng = markers[id].getLatLng();
+                result.push({
+                    id: id,
+                    lat: latLng.lat,
+                    lng: latLng.lng
+                });
+            }
+        }
+        return result;
+    }
+    
+    function setStyle(options) {
+        try {
+            if (!map) return false;
+            if (options.zoom) map.setZoom(options.zoom);
+            if (options.markerColor) {
+                // Could customize marker colors here
+            }
+            log('Map style updated');
+            return true;
+        } catch (e) {
+            logError('setStyle() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Fit map to show all pickup and destination markers with animation
+     */
+    function fitToRoute() {
+        try {
+            if (!map) return false;
+            
+            var pickupMarker = markers['route-pickup'];
+            var destMarker = markers['route-destination'];
+            
+            if (pickupMarker && destMarker) {
+                var group = new L.featureGroup([pickupMarker, destMarker]);
+                map.fitBounds(group.getBounds(), {
+                    padding: [50, 50],
+                    animate: true,
+                    duration: 1.2
+                });
+                log('Map fitted to route with animation');
+                return true;
+            } else {
+                log('No route markers available to fit bounds');
+                return false;
+            }
+        } catch (e) {
+            logError('fitToRoute() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Animate map to center with zoom
+     */
+    function animateTo(lat, lng, zoom, duration) {
+        try {
+            if (!map) return false;
+            
+            duration = duration || 1;
+            zoom = zoom || 14;
+            
+            map.flyTo([lat, lng], zoom, {
+                animate: true,
+                duration: duration
+            });
+            
+            log('Map animating to: ' + lat + ', ' + lng + ' zoom: ' + zoom);
+            return true;
+        } catch (e) {
+            logError('animateTo() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function startLocationTracking() {
+        try {
+            if (!navigator.geolocation) {
+                log('Geolocation not supported by browser');
+                return false;
+            }
+            
+            log('Starting location tracking...');
+            
+            // Get current position once
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    log('Current location: ' + lat + ', ' + lng);
+                    
+                    // Update user location
+                    userLocation = [lat, lng];
+                    
+                    // Add or update user marker
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                    } else {
+                        var icon = createMarkerIcon(userRole);
+                        userMarker = L.marker([lat, lng], { icon: icon })
+                            .bindPopup('You are here')
+                            .addTo(map);
+                        markers['user-location'] = userMarker;
+                    }
+                    
+                    // Center map on user location
+                    map.setView([lat, lng], 15);
+                },
+                function(error) {
+                    log('Geolocation error: ' + error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+            
+            // Watch position for live tracking
+            watchId = navigator.geolocation.watchPosition(
+                function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    
+                    userLocation = [lat, lng];
+                    
+                    if (userMarker) {
+                        userMarker.setLatLng([lat, lng]);
+                    }
+                    
+                    log('Location updated: ' + lat + ', ' + lng);
+                },
+                function(error) {
+                    log('Watch position error: ' + error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 30000
+                }
+            );
+            
+            return true;
+        } catch (e) {
+            logError('startLocationTracking() failed: ' + e.message, e);
+            return false;
+        }
+    }
+    
+    function stopLocationTracking() {
+        if (watchId) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+            log('Location tracking stopped');
+        }
+    }
+    
+    // Public API
     return {
         init: init,
         setCenter: setCenter,
         addOrUpdateMarker: addOrUpdateMarker,
-        showEntities: showEntities,
-        updateEntityPosition: updateEntityPosition,
-        setRoute: setRoute,
-        clearRoute: clearRoute,
-        clearMap: clearMap,
-        resize: resize
+        removeMarker: removeMarker,
+        showRoute: showRoute,
+        showRouteWithDistance: showRouteWithDistance,
+        clearAllMarkers: clearAllMarkers,
+        clearAllRoutes: clearAllRoutes,
+        getMarkers: getMarkers,
+        setStyle: setStyle,
+        fitToRoute: fitToRoute,
+        animateTo: animateTo,
+        startLocationTracking: startLocationTracking,
+        stopLocationTracking: stopLocationTracking
     };
 })();
+
+// Make it available globally
+console.log('[map.js] YamdutMap module loaded');
