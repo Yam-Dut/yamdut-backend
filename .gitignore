@@ -4,7 +4,7 @@
 # Ignore Gradle build output directory
 build/
 
-
+# 
 D:\java\YamDut\yamdut-backend\app\src\main\java\org\example\database\mySQL.
 D:\java\YamDut\yamdut-backend\build
 D:\java\YamDut\yamdut-backend\gradle.properties
@@ -30,3 +30,4 @@ app/src/main/resources/web/token.js
 app/src/main/java/org/yamdut/database/MySqlConfig.java
 app/src/main/java/org/yamdut/database/DatabaseInitializer.java
 
+app/src/main/java/org/yamdut/database/

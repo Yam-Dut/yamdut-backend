@@ -35,7 +35,7 @@ public class App {
         SwingUtilities.invokeLater(() -> {
 
             // ───────────────────────── Frame ─────────────────────────
-            JFrame frame = new JFrame("यमदूत - Ride Sharing");
+            JFrame frame = new JFrame("\u092F\u092E\u0926\u0942\u0924 - Ride Sharing");
             frame.setSize(1200, 800);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLocationRelativeTo(null);

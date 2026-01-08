@@ -6,8 +6,14 @@ import org.yamdut.model.Driver;
 
 public interface DriverDAO {
     boolean createDriver(Driver driver);
-    Driver getDriverById(int id);
+
+    Driver getDriverById(long id);
+
+    Driver getDriverByUserId(long userId);
+
     boolean updateDriver(Driver driver);
-    boolean deleteDriver(int id);
+
+    boolean deleteDriver(long id);
+
     List<Driver> getAllDrivers();
 }

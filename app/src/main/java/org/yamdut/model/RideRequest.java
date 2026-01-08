@@ -5,13 +5,16 @@ public class RideRequest {
     // =====================
     // DB fields
     // =====================
-    private int id;                 // ride_requests.id
-    private int passengerId;        // INT (matches DB)
+    // =====================
+    // DB fields
+    // =====================
+    private long id; // BIGINT
+    private long passengerId; // BIGINT
     private String passengerName;
 
     private String pickup;
     private String dropoff;
-    
+
     // Coordinates
     private double pickupLat;
     private double pickupLon;
@@ -19,10 +22,12 @@ public class RideRequest {
     private double destLon;
 
     // Driver info (assigned)
-    private int driverId;
+    private long driverId;
     private String driverName;
+    private double driverLat;
+    private double driverLon;
     private double fare;
-    private String status; // PENDING, ACCEPTED, CANCELLED
+    private String status; // REQUESTING, ACCEPTED, CANCELLED
     private boolean accepted;
 
     // =====================
@@ -30,37 +35,38 @@ public class RideRequest {
     // =====================
 
     // Used when passenger books a ride (before DB id exists)
-    public RideRequest(int passengerId, String passengerName, String pickup, String dropoff) {
+    public RideRequest(long passengerId, String passengerName, String pickup, String dropoff) {
         this.passengerId = passengerId;
         this.passengerName = passengerName;
         this.pickup = pickup;
         this.dropoff = dropoff;
         this.driverId = 0;
-        this.status = "PENDING";
+        this.status = "REQUESTING";
         this.accepted = false;
     }
 
     // Constructor with coordinates (used by Controller)
-    public RideRequest(String pickup, String dropoff, double pickupLat, double pickupLon, 
-                      double destLat, double destLon, String passengerIdStr, String passengerName) {
+    public RideRequest(String pickup, String dropoff, double pickupLat, double pickupLon,
+            double destLat, double destLon, String passengerIdStr, String passengerName) {
         this.pickup = pickup;
         this.dropoff = dropoff;
         this.pickupLat = pickupLat;
         this.pickupLon = pickupLon;
         this.destLat = destLat;
         this.destLon = destLon;
-        
+
         // Handle passenger ID parsing
         try {
-            this.passengerId = Integer.parseInt(passengerIdStr.replaceAll("\\D", "")); 
-            if (this.passengerId == 0) this.passengerId = 1; // Fallback
+            this.passengerId = Long.parseLong(passengerIdStr.replaceAll("\\D", ""));
+            if (this.passengerId == 0)
+                this.passengerId = 1; // Fallback
         } catch (NumberFormatException e) {
             this.passengerId = 1; // Fallback
         }
-        
+
         this.passengerName = passengerName;
         this.driverId = 0;
-        this.status = "PENDING";
+        this.status = "REQUESTING";
         this.accepted = false;
     }
 
@@ -68,11 +74,11 @@ public class RideRequest {
     // Getters
     // =====================
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public int getPassengerId() {
+    public long getPassengerId() {
         return passengerId;
     }
 
@@ -87,18 +93,29 @@ public class RideRequest {
     public String getDropoff() {
         return dropoff;
     }
-    
+
     // Alias for getDropoff to match controller usage
     public String getDestination() {
         return dropoff;
     }
-    
-    public double getPickupLat() { return pickupLat; }
-    public double getPickupLon() { return pickupLon; }
-    public double getDestLat() { return destLat; }
-    public double getDestLon() { return destLon; }
 
-    public int getDriverId() {
+    public double getPickupLat() {
+        return pickupLat;
+    }
+
+    public double getPickupLon() {
+        return pickupLon;
+    }
+
+    public double getDestLat() {
+        return destLat;
+    }
+
+    public double getDestLon() {
+        return destLon;
+    }
+
+    public long getDriverId() {
         return driverId;
     }
 
@@ -118,11 +135,27 @@ public class RideRequest {
         return accepted;
     }
 
+    public double getDriverLat() {
+        return driverLat;
+    }
+
+    public void setDriverLat(double driverLat) {
+        this.driverLat = driverLat;
+    }
+
+    public double getDriverLon() {
+        return driverLon;
+    }
+
+    public void setDriverLon(double driverLon) {
+        this.driverLon = driverLon;
+    }
+
     // =====================
     // Setters / State
     // =====================
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -131,7 +164,7 @@ public class RideRequest {
         this.status = "ACCEPTED";
     }
 
-    public void setDriverId(int driverId) {
+    public void setDriverId(long driverId) {
         this.driverId = driverId;
     }
 
@@ -153,19 +186,21 @@ public class RideRequest {
 
     @Override
     public String toString() {
-        return getPassengerName();
+        return getPassengerName() + ": " + getPickup() + " → " + getDropoff();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof RideRequest)) return false;
+        if (this == obj)
+            return true;
+        if (!(obj instanceof RideRequest))
+            return false;
         RideRequest other = (RideRequest) obj;
         return id == other.id;
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(id);
+        return Long.hashCode(id);
     }
 }

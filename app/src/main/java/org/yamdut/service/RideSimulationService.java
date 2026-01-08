@@ -1,6 +1,5 @@
 package org.yamdut.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Timer;
 import org.yamdut.view.map.MapPanel;
@@ -11,80 +10,98 @@ public class RideSimulationService {
     private MapPanel mapPanel;
     private List<double[]> routePoints;
     private int currentIndex = 0;
-    private String driverId = "driver1";
+    private String targetId = "ME";
+    private double speedMultiplier = 2.2;
     private Runnable onComplete;
-    
-    private RideSimulationService() {}
-    
+
+    private RideSimulationService() {
+    }
+
     public static RideSimulationService getInstance() {
         if (instance == null) {
             instance = new RideSimulationService();
         }
         return instance;
     }
-    
+
     public void startRide(
             MapPanel mapPanel,
-            double driverLat, double driverLon,
-            double pickupLat, double pickupLon,
-            double destLat, double destLon,
-            Runnable onComplete
-    ) {
+            String targetId,
+            List<double[]> interpolatedPoints,
+            java.util.function.BiConsumer<double[], Integer> onUpdate,
+            Runnable onComplete) {
         this.mapPanel = mapPanel;
+        this.targetId = targetId;
         this.onComplete = onComplete;
-        this.routePoints = new ArrayList<>();
-        
-        // Generate route points (simplified - in real app, use OSRM route)
-        generateRoutePoints(driverLat, driverLon, pickupLat, pickupLon);
-        generateRoutePoints(pickupLat, pickupLon, destLat, destLon);
-        
+        this.routePoints = interpolatedPoints;
+
         currentIndex = 0;
-        startAnimation();
+        startAnimation(onUpdate);
     }
-    
-    private void generateRoutePoints(double fromLat, double fromLon, double toLat, double toLon) {
-        // Generate intermediate points for smooth animation
-        int steps = 20;
-        for (int i = 0; i <= steps; i++) {
-            double ratio = (double) i / steps;
-            double lat = fromLat + (toLat - fromLat) * ratio;
-            double lon = fromLon + (toLon - fromLon) * ratio;
-            routePoints.add(new double[]{lat, lon});
+
+    public List<double[]> interpolatePoints(List<double[]> points, int stepsPerSegment) {
+        List<double[]> interpolated = new java.util.ArrayList<>();
+        if (points == null || points.size() < 2)
+            return points;
+
+        for (int i = 0; i < points.size() - 1; i++) {
+            double[] start = points.get(i);
+            double[] end = points.get(i + 1);
+
+            for (int j = 0; j < stepsPerSegment; j++) {
+                double ratio = (double) j / stepsPerSegment;
+                double lat = start[0] + (end[0] - start[0]) * ratio;
+                double lon = start[1] + (end[1] - start[1]) * ratio;
+                interpolated.add(new double[] { lat, lon });
+            }
         }
+        interpolated.add(points.get(points.size() - 1));
+        return interpolated;
     }
-    
-    private void startAnimation() {
+
+    private void startAnimation(java.util.function.BiConsumer<double[], Integer> onUpdate) {
         stopRide();
-        
-        simulationTimer = new Timer(200, e -> {
-            if (currentIndex >= routePoints.size()) {
+
+        int delay = (int) (100 / speedMultiplier); // Faster interval for smoother motion
+        simulationTimer = new Timer(delay, e -> {
+            if (routePoints == null || currentIndex >= routePoints.size()) {
                 stopRide();
                 if (onComplete != null) {
                     onComplete.run();
                 }
                 return;
             }
-            
+
             double[] point = routePoints.get(currentIndex++);
-            mapPanel.updateEntityPosition(driverId, point[0], point[1]);
-            
-            // Center map on driver
-            mapPanel.setCenter(point[0], point[1], 15);
+            if (mapPanel != null) {
+                mapPanel.updateEntityPosition(targetId, point[0], point[1], "DRIVER");
+                // Center map less frequently or smoothly to avoid vertigo
+                if (currentIndex % 3 == 0) {
+                    mapPanel.setCenter(point[0], point[1], 15);
+                }
+            }
+
+            if (onUpdate != null) {
+                onUpdate.accept(point, currentIndex);
+            }
         });
-        
+
         simulationTimer.start();
     }
-    
+
     public void stopRide() {
         if (simulationTimer != null) {
             simulationTimer.stop();
             simulationTimer = null;
         }
         currentIndex = 0;
-        routePoints = null;
     }
-    
+
     public boolean isRunning() {
         return simulationTimer != null && simulationTimer.isRunning();
+    }
+
+    public void setSpeedMultiplier(double multiplier) {
+        this.speedMultiplier = Math.max(0.1, multiplier); // Prevent division by zero/slow
     }
 }

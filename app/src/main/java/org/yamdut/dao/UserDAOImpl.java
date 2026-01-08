@@ -12,18 +12,19 @@ public class UserDAOImpl implements UserDAO {
     public void save(User user) {
         String sql = """
                     INSERT INTO users
-                    (full_name, email, username, role, password_hash, verified)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    (full_name, email, phone, username, role, password_hash, verified)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
 
         try (Connection conn = MySqlConfig.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getEmail());
-            ps.setString(3, user.getUsername());
-            ps.setString(4, user.getRole().name());
-            ps.setString(5, user.getPasswordHash());
-            ps.setBoolean(6, user.getVerified());
+            ps.setString(3, user.getPhone());
+            ps.setString(4, user.getUsername());
+            ps.setString(5, user.getRole().name());
+            ps.setString(6, user.getPasswordHash());
+            ps.setBoolean(7, user.getVerified());
 
             ps.executeUpdate();
 
@@ -102,6 +103,7 @@ public class UserDAOImpl implements UserDAO {
         user.setId(rs.getLong("id"));
         user.setFullName(rs.getString("full_name"));
         user.setEmail(rs.getString("email"));
+        user.setPhone(rs.getString("phone"));
         user.setUsername(rs.getString("username"));
         // Robust Role parsing
         String roleStr = rs.getString("role");
@@ -198,7 +200,6 @@ public class UserDAOImpl implements UserDAO {
             ps.setString(4, user.getUsername());
             ps.setString(5, user.getRole().name());
             ps.setLong(6, user.getId());
-
             int rows = ps.executeUpdate();
             return rows > 0;
         } catch (SQLException e) {

@@ -8,11 +8,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 import org.yamdut.utils.Theme;
 import org.yamdut.model.Role;
@@ -20,6 +17,7 @@ import org.yamdut.view.components.LocationInputCard;
 import org.yamdut.view.components.ModernButton;
 import org.yamdut.view.components.RatingPanel;
 import org.yamdut.view.components.RideCard;
+import org.yamdut.view.components.TripDetailsCard;
 import org.yamdut.view.map.MapPanel;
 
 public class PassengerDashboard extends BaseDashboard {
@@ -28,8 +26,7 @@ public class PassengerDashboard extends BaseDashboard {
     private ModernButton bookRideButton;
     private ModernButton clearButton;
 
-    private DefaultListModel<String> driverListModel;
-    private JList<String> driverList;
+    private TripDetailsCard tripDetailsCard;
 
     private MapPanel mapPanel;
     private JPanel rideInfoPanel;
@@ -109,8 +106,18 @@ public class PassengerDashboard extends BaseDashboard {
         btnGbc.insets = new Insets(0, 0, 0, 0);
         buttonPanel.add(clearButton, btnGbc);
 
-        // Driver list section
-        JPanel driverSection = createDriverSection();
+        // Trip details section
+        tripDetailsCard = new TripDetailsCard();
+        tripDetailsCard.reset();
+
+        // Active ride panel (initially hidden)
+        rideInfoPanel = new JPanel(new BorderLayout(0, 12));
+        rideInfoPanel.setBackground(Theme.BACKGROUND_PRIMARY);
+        rideInfoPanel.setVisible(false);
+
+        // Rating panel (initially hidden)
+        ratingPanel = new RatingPanel();
+        ratingPanel.setVisible(false);
 
         // Active ride panel (initially hidden)
         rideInfoPanel = new JPanel(new BorderLayout(0, 12));
@@ -134,39 +141,14 @@ public class PassengerDashboard extends BaseDashboard {
         bottomSection.add(ratingPanel, BorderLayout.CENTER);
 
         panel.add(topSection, BorderLayout.NORTH);
-        panel.add(driverSection, BorderLayout.CENTER);
+        panel.add(tripDetailsCard, BorderLayout.CENTER);
         panel.add(bottomSection, BorderLayout.SOUTH);
 
         return panel;
     }
 
-    private JPanel createDriverSection() {
-        JPanel panel = new JPanel(new BorderLayout(0, 8));
-        panel.setBackground(Theme.BACKGROUND_PRIMARY);
-        panel.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
-
-        JLabel sectionTitle = new JLabel("Available Drivers");
-        sectionTitle.setFont(Theme.getHeadingFont());
-        sectionTitle.setForeground(Theme.TEXT_PRIMARY);
-        sectionTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
-
-        driverListModel = new DefaultListModel<>();
-        driverList = new JList<>(driverListModel);
-        driverList.setFont(Theme.getBodyFont());
-        driverList.setBackground(Theme.BACKGROUND_CARD);
-        driverList.setSelectionBackground(Theme.COLOR_PRIMARY);
-        driverList.setSelectionForeground(Color.WHITE);
-        driverList.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-
-        JScrollPane scrollPane = new JScrollPane(driverList);
-        scrollPane.setBorder(BorderFactory.createLineBorder(Theme.BORDER_COLOR, 1));
-        scrollPane.setBackground(Theme.BACKGROUND_CARD);
-        scrollPane.setPreferredSize(new Dimension(0, 180));
-
-        panel.add(sectionTitle, BorderLayout.NORTH);
-        panel.add(scrollPane, BorderLayout.CENTER);
-
-        return panel;
+    public TripDetailsCard getTripDetailsCard() {
+        return tripDetailsCard;
     }
 
     public void setPickupLocation(String address, double lat, double lon) {
@@ -199,6 +181,10 @@ public class PassengerDashboard extends BaseDashboard {
         mapPanel.setRoute(pickupLat, pickupLon, destLat, destLon);
     }
 
+    public void showRoute(double pickupLat, double pickupLon, double destLat, double destLon, Color color) {
+        mapPanel.setRoute(pickupLat, pickupLon, destLat, destLon, color);
+    }
+
     private void updateBookButtonState() {
         boolean canBook = !pickupCard.getAddress().isEmpty() &&
                 !destinationCard.getAddress().isEmpty();
@@ -211,8 +197,9 @@ public class PassengerDashboard extends BaseDashboard {
         pickupCard.setStatus("Enter location name", Theme.TEXT_SECONDARY);
         destinationCard.setStatus("Enter location name", Theme.TEXT_SECONDARY);
         bookRideButton.setEnabled(false);
-        mapPanel.clearRoute();
+        mapPanel.clearAllRoutes();
         mapPanel.clearMap();
+        tripDetailsCard.reset();
     }
 
     public void showActiveRide(String pickup, String destination, String driverName) {
@@ -260,12 +247,8 @@ public class PassengerDashboard extends BaseDashboard {
         return mapPanel;
     }
 
-    public DefaultListModel<String> getDriverListModel() {
-        return driverListModel;
-    }
-
-    public JList<String> getDriverList() {
-        return driverList;
+    public TripDetailsCard getTripDetails() {
+        return tripDetailsCard;
     }
 
     public RideCard getActiveRideCard() {

@@ -8,6 +8,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs += "-Dfile.encoding=UTF-8"
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io' }
@@ -49,7 +57,8 @@ dependencies {
         */
     // implementation 'org.mariadb.jdbc:mariadb-java-client:2.7.10'
     //implementation 'org.mysql:mysql-connector-j:9.1.0' 
-    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.3'
+    // implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.3'
+    implementation 'com.mysql:mysql-connector-j:9.1.0'
 
     implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 

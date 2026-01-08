@@ -67,11 +67,9 @@ public class AdminDashboard extends BaseDashboard {
         statsPanel.setBackground(Theme.BACKGROUND_PRIMARY);
         statsPanel.setPreferredSize(new Dimension(600, 100));
 
-        statsPanel.add(createStatCard("Total Users", "0", Theme.COLOR_PRIMARY, totalUsersLabel = new JLabel()));
-        statsPanel
-                .add(createStatCard("Active Drivers", "0", new Color(46, 204, 113), activeDriversLabel = new JLabel()));
-        statsPanel.add(createStatCard("Today's Rides", "0", new Color(52, 152, 219), todaysRidesLabel = new JLabel()));
-        statsPanel.add(createStatCard("Revenue", "$0.00", new Color(241, 196, 15), revenueLabel = new JLabel()));
+        statsPanel.add(createStatCard("Users", "0", Theme.COLOR_PRIMARY, totalUsersLabel = new JLabel()));
+        statsPanel.add(createStatCard("Drivers", "0", new Color(46, 204, 113), activeDriversLabel = new JLabel()));
+        statsPanel.add(createStatCard("Revenue", "Rs. 0", new Color(241, 196, 15), revenueLabel = new JLabel()));
 
         contentPanel.add(statsPanel, gbc);
 
@@ -221,6 +219,6 @@ public class AdminDashboard extends BaseDashboard {
         if (todaysRidesLabel != null)
             todaysRidesLabel.setText(String.valueOf(todaysRides));
         if (revenueLabel != null)
-            revenueLabel.setText(String.format("$%.2f", revenue));
+            revenueLabel.setText(String.format("Rs. %.0f", revenue));
     }
 }

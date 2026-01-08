@@ -11,6 +11,7 @@ public class LocationInputCard extends JPanel {
     private JLabel titleLabel;
     private JTextField addressField;
     private JButton searchButton;
+    private JButton changeButton; // Added for pickup locking
     private JLabel statusLabel;
 
     public LocationInputCard(String title, String icon, Color accentColor) {
@@ -61,7 +62,22 @@ public class LocationInputCard extends JPanel {
         searchButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         inputPanel.add(addressField, BorderLayout.CENTER);
-        inputPanel.add(searchButton, BorderLayout.EAST);
+
+        // Action panel for buttons
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        actionPanel.setOpaque(false);
+
+        changeButton = new JButton("Change");
+        changeButton.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        changeButton.setBackground(new Color(52, 152, 219));
+        changeButton.setForeground(Color.WHITE);
+        changeButton.setVisible(false); // Only visible for pickup if needed
+        changeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        actionPanel.add(changeButton);
+        actionPanel.add(searchButton);
+
+        inputPanel.add(actionPanel, BorderLayout.EAST);
 
         // Status label
         statusLabel = new JLabel("Enter location name");
@@ -101,6 +117,33 @@ public class LocationInputCard extends JPanel {
 
     public JButton getSearchButton() {
         return searchButton;
+    }
+
+    public void setLocked(boolean locked) {
+        addressField.setEditable(!locked);
+        searchButton.setEnabled(!locked);
+        if (locked) {
+            addressField.setBackground(new Color(245, 245, 245));
+        } else {
+            addressField.setBackground(Color.WHITE);
+        }
+    }
+
+    public void showChangeButton(boolean show) {
+        changeButton.setVisible(show);
+        revalidate();
+        repaint();
+    }
+
+    public JButton getChangeButton() {
+        return changeButton;
+    }
+
+    public void setChangeAction(ActionListener listener) {
+        for (ActionListener al : changeButton.getActionListeners()) {
+            changeButton.removeActionListener(al);
+        }
+        changeButton.addActionListener(listener);
     }
 
     public void setSearchAction(ActionListener listener) {
