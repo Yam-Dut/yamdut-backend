@@ -22,7 +22,6 @@ public class MapService {
     }
     GeoPosition start = points.get(0);
     GeoPosition end = points.get(1);
-
     String url = OSRM_BASE
         + start.getLongitude() + "," + start.getLatitude()
         + ";"
